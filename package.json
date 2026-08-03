@@ -9,10 +9,14 @@
     "seed": "npm run seed --prefix server",
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client",
-    "build": "npm run build --prefix client"
+    "build": "npm run build --prefix client",
+    "start": "npm --prefix server start"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^7.5.0"
+  }
 }
