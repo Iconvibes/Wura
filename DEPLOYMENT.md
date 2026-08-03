@@ -53,13 +53,10 @@ This repo now supports a single full-stack Render deployment:
    - `npm install && npm run setup && npm run build`
 4. Set the Start Command to:
    - `npm start`
-5. Configure environment variables manually in the Render dashboard:
+5. Set Environment Variables:
    - `MONGODB_URI` — your Atlas connection string
    - `JWT_SECRET` — a strong secret
    - `PORT` — `5000` (optional, Render sets a port automatically if missing)
-
-> Do not paste placeholder values like `<your-mongodb-uri-here>` into Render. Use a real connection string.
-
 6. Deploy and verify the service URL.
 
 Because `server/index.js` serves `client/dist` when it exists, Render will serve the built React app and the Express API from one service.
