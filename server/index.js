@@ -54,7 +54,7 @@ app.use((err, req, res, next) => {
       // Note: EADDRINUSE fires on the http.Server returned by app.listen,
       // not on the Express app — so attach listeners to that server object.
       const server = await new Promise((resolve, reject) => {
-        const srv = app.listen(p, '127.0.0.1');
+        const srv = app.listen(p, '0.0.0.0');
         const onErr = (e) => { srv.removeListener('listening', onOk); reject(e); };
         const onOk = () => { srv.removeListener('error', onErr); resolve(srv); };
         srv.once('error', onErr);
