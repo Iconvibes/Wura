@@ -25,7 +25,7 @@ function GuestCard({ b, type, onAction }) {
   return (
     <div className={`card fd-card overflow-hidden ${done ? 'fd-card-success' : ''}`}>
       <div className="relative">
-        <img src={b.room_art} alt={b.room_name} className="w-full aspect-[16/7] object-cover" />
+        <img src={b.room_art} alt={b.room_name} className="w-full aspect-16/7 object-cover" />
         <span className="absolute top-3 left-3 text-[10px] tracking-[2px] uppercase font-bold text-gold-300 bg-navy-950/75 border border-gold-500/40 rounded-md px-2.5 py-1">
           {b.room_type}
         </span>
