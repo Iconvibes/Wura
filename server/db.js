@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI?.trim();
 
 /**
  * connectDB — connects Mongoose to MongoDB.
@@ -16,6 +16,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 export async function connectDB() {
   let mem = null;
   let uri = MONGODB_URI;
+
+  if (uri && uri.startsWith('<')) {
+    throw new Error('MONGODB_URI appears to be a placeholder value. Set a real MongoDB connection string in Render or your .env file.');
+  }
 
   if (!uri) {
     console.log('  ➜ MONGODB_URI not set — starting in-memory MongoDB (dev mode)…');
