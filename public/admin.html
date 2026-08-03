@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Portal — Wura Grand Hotel</title>
+  <link rel="icon" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ======================= LOGIN VIEW ======================= -->
+  <div class="login-wrap" id="loginView">
+    <div class="login-card">
+      <a class="brand" href="/">
+        <span class="brand-mark">W</span>
+        <span class="brand-name">WURA GRAND<small>STAFF PORTAL</small></span>
+      </a>
+      <h2>Welcome back</h2>
+      <p>Sign in to manage bookings and rooms.</p>
+      <div class="login-err" id="loginErr"></div>
+      <form id="loginForm" style="display:grid;gap:14px">
+        <div class="form-field"><label>Username</label><input type="text" id="loginUser" value="admin" autocomplete="username" /></div>
+        <div class="form-field"><label>Password</label><input type="password" id="loginPass" value="admin123" autocomplete="current-password" /></div>
+        <button type="submit" class="btn btn-gold btn-block" id="loginBtn">Sign in</button>
+      </form>
+      <p style="margin-top:20px;text-align:center;font-size:12px;color:var(--dim)">Demo credentials — admin / admin123</p>
+      <p style="margin-top:10px;text-align:center"><a href="/" style="color:var(--gold);font-size:13px;text-decoration:none">← Back to guest site</a></p>
+    </div>
+  </div>
+
+  <!-- ======================= DASHBOARD SHELL ======================= -->
+  <div class="admin-shell" id="dashView" style="display:none">
+    <aside class="sidebar">
+      <a class="brand" href="/"><span class="brand-mark">W</span><span class="brand-name">WURA GRAND<small>STAFF PORTAL</small></span></a>
+      <button class="side-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-6 4 3 5-7"/></svg>
+        Overview
+      </button>
+      <button class="side-item" data-view="front-desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M3 9l3 5h12l3-5"/><path d="M7 7V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2"/></svg>
+        Front Desk
+      </button>
+      <button class="side-item" data-view="bookings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 15h8M8 18h5"/></svg>
+        Bookings
+      </button>
+      <button class="side-item" data-view="rooms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="M3 18h18M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+        Rooms &amp; Rates
+      </button>
+      <div class="side-spacer"></div>
+      <div class="side-user">
+        <div class="name" id="sideUserName">admin</div>
+        <div class="role">Front desk · Level 5</div>
+        <button class="side-item" id="logoutBtn" style="margin-top:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+          Sign out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- OVERVIEW -->
+      <div id="view-overview">
+        <div class="page-title">
+          <div><h1>Good day, <span id="overviewGreet">team</span> 👋</h1>
+          <p id="overviewDate"></p></div>
+          <button class="btn btn-ghost btn-sm" id="refreshBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><div class="label">Loading…</div><div class="value">—</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Occupancy — next 30 days</h3><span class="hint">30-day average shown in the stat card</span></div>
+          <div class="occ-chart" id="occChart"></div>
+          <div class="occ-labels" id="occLabels"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Recent bookings</h3><span class="hint">Latest activity</span></div>
+          <div class="table-wrap"><table id="recentTable"><thead><tr>
+            <th>Ref</th><th>Guest</th><th>Room</th><th>Dates</th><th>Total</th><th>Status</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div id="view-bookings" style="display:none">
+        <div class="page-title">
+          <div><h1>Bookings</h1><p>Manage every reservation from one place.</p></div>
+          <div class="chips" id="statusChips"></div>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table id="bookingsTable"><thead><tr>
+              <th>Ref</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Guests</th><th>Total</th><th>Status</th><th>Actions</th>
+            </tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRONT DESK -->
+      <div id="view-front-desk" style="display:none">
+        <div class="page-title">
+          <div><h1>Front Desk</h1>
+          <p id="fdDate"></p></div>
+          <button class="btn btn-ghost btn-sm" id="fdRefreshBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div id="fdContent"><div class="spinner" style="margin:60px auto"></div></div>
+      </div>
+
+      <!-- ROOMS -->
+      <div id="view-rooms" style="display:none">
+        <div class="page-title">
+          <div><h1>Rooms &amp; Rates</h1><p>Add, edit or take rooms offline for maintenance.</p></div>
+          <button class="btn btn-gold btn-sm" id="addRoomBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add room
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table id="roomsTable"><thead><tr>
+              <th>Room</th><th>Type</th><th>Capacity</th><th>Size</th><th>Rate / night</th><th>Status</th><th>Actions</th>
+            </tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ROOM EDIT MODAL -->
+  <div class="modal-backdrop" id="roomModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rmTitle">
+      <div class="modal-head">
+        <h3 id="rmTitle">Edit room</h3>
+        <button class="modal-close" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-field full"><label>Room name</label><input type="text" id="rName" placeholder="e.g. Skyline Suite" /></div>
+          <div class="form-field"><label>Type</label>
+            <select id="rType"><option>Standard</option><option>Deluxe</option><option>Suite</option><option>Penthouse</option></select>
+          </div>
+          <div class="form-field"><label>Status</label>
+            <select id="rStatus"><option value="active">Active</option><option value="maintenance">Maintenance</option></select>
+          </div>
+          <div class="form-field"><label>Price / night (USD)</label><input type="number" id="rPrice" min="1" step="1" /></div>
+          <div class="form-field"><label>Capacity (guests)</label><input type="number" id="rCapacity" min="1" step="1" /></div>
+          <div class="form-field"><label>Size (m²)</label><input type="number" id="rSize" min="1" step="1" /></div>
+          <div class="form-field full"><label>Amenities <span style="opacity:.5;text-transform:none">(comma separated)</span></label><input type="text" id="rAmenities" placeholder="King bed, Free Wi-Fi, Balcony" /></div>
+          <div class="form-field full"><label>Description</label><textarea id="rDesc" rows="3" placeholder="A short, evocative description…"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close>Cancel</button>
+        <button class="btn btn-gold" id="saveRoomBtn">Save room</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

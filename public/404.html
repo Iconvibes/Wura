@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — This corridor leads nowhere · Wura Grand Hotel</title>
+  <meta name="description" content="Page not found at Wura Grand Hotel." />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070b15;
+      display: grid;
+      place-items: center;
+      min-height: 100svh;
+      padding: 20px;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .svg-wrap {
+      width: min(680px, 100%);
+      aspect-ratio: 4 / 3;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+    }
+    .svg-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      background: radial-gradient(ellipse 80% 50% at 50% 60%, transparent 40%, rgba(7, 11, 21, 0.45) 100%);
+    }
+    .overlay h1 {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(64px, 14vw, 120px);
+      font-weight: 700;
+      color: #d4af37;
+      line-height: 0.8;
+      text-shadow: 0 0 40px rgba(212, 175, 55, 0.3), 0 8px 30px rgba(0, 0, 0, 0.5);
+      letter-spacing: 6px;
+    }
+    .overlay p {
+      color: #e9e4d6;
+      font-size: clamp(14px, 2.4vw, 19px);
+      margin: 8px 0 18px;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+    }
+    .overlay a {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #e6c25a, #d4af37 45%, #b8902a);
+      color: #15100a;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      box-shadow: 0 10px 26px rgba(212, 175, 55, 0.28);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
+    }
+    .overlay a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(212, 175, 55, 0.4);
+    }
+    .overlay a:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+<div class="svg-wrap">
+  <!-- Full corridor night scene -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 510" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <!-- Deep night gradient -->
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0a0f1e"/>
+        <stop offset="0.5" stop-color="#0d1426"/>
+        <stop offset="1" stop-color="#141a30"/>
+      </linearGradient>
+      <!-- Floor gradient -->
+      <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#151c32"/>
+        <stop offset="1" stop-color="#0c1120"/>
+      </linearGradient>
+      <!-- Warm gold light from the wall sconces -->
+      <radialGradient id="glow1" cx="0.15" cy="0.35" r="0.4">
+        <stop offset="0" stop-color="rgba(212,175,55,0.18)"/>
+        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+      <radialGradient id="glow2" cx="0.85" cy="0.35" r="0.4">
+        <stop offset="0" stop-color="rgba(212,175,55,0.18)"/>
+        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+      <radialGradient id="glow3" cx="0.5" cy="0.45" r="0.45">
+        <stop offset="0" stop-color="rgba(212,175,55,0.10)"/>
+        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+      </radialGradient>
+      <!-- Light cone from the chandelier -->
+      <linearGradient id="lightCone" x1="0.5" y1="0" x2="0.5" y2="1">
+        <stop offset="0" stop-color="rgba(212,175,55,0.08)"/>
+        <stop offset="0.6" stop-color="rgba(212,175,55,0.02)"/>
+        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="680" height="510" fill="url(#sky)"/>
+
+    <!-- Stars through top window -->
+    <g opacity="0.4">
+      <circle cx="340" cy="12" r="0.6" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="280" cy="8" r="0.4" fill="rgba(255,255,255,0.4)"/>
+      <circle cx="400" cy="15" r="0.5" fill="rgba(255,255,255,0.35)"/>
+      <circle cx="220" cy="18" r="0.4" fill="rgba(255,255,255,0.3)"/>
+      <circle cx="460" cy="10" r="0.5" fill="rgba(255,255,255,0.45)"/>
+      <circle cx="310" cy="20" r="0.3" fill="rgba(255,255,255,0.3)"/>
+      <circle cx="370" cy="6" r="0.4" fill="rgba(255,255,255,0.35)"/>
+    </g>
+
+    <!-- Ambient glow layers -->
+    <rect width="680" height="510" fill="url(#glow1)"/>
+    <rect width="680" height="510" fill="url(#glow2)"/>
+    <rect width="680" height="510" fill="url(#glow3)"/>
+
+    <!-- Ceiling -->
+    <rect x="0" y="0" width="680" height="90" fill="rgba(10,15,30,0.6)"/>
+    <line x1="0" y1="90" x2="680" y2="90" stroke="rgba(212,175,55,0.12)" stroke-width="0.5"/>
+
+    <!-- Crown moulding -->
+    <rect x="0" y="84" width="680" height="6" fill="rgba(212,175,55,0.08)"/>
+    <line x1="0" y1="84" x2="680" y2="84" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
+
+    <!-- Left wall -->
+    <rect x="0" y="90" width="120" height="310" fill="rgba(12,17,34,0.7)"/>
+    <!-- Right wall -->
+    <rect x="560" y="90" width="120" height="310" fill="rgba(12,17,34,0.7)"/>
+
+    <!-- Left wall wainscoting -->
+    <rect x="0" y="90" width="120" height="310" fill="none" stroke="rgba(212,175,55,0.06)" stroke-width="0.5"/>
+    <line x1="0" y1="310" x2="120" y2="310" stroke="rgba(212,175,55,0.1)" stroke-width="0.8"/>
+    <rect x="10" y="315" width="100" height="85" rx="2" fill="rgba(212,175,55,0.03)" stroke="rgba(212,175,55,0.06)" stroke-width="0.5"/>
+
+    <!-- Right wall wainscoting -->
+    <rect x="560" y="90" width="120" height="310" fill="none" stroke="rgba(212,175,55,0.06)" stroke-width="0.5"/>
+    <line x1="560" y1="310" x2="680" y2="310" stroke="rgba(212,175,55,0.1)" stroke-width="0.8"/>
+    <rect x="570" y="315" width="100" height="85" rx="2" fill="rgba(212,175,55,0.03)" stroke="rgba(212,175,55,0.06)" stroke-width="0.5"/>
+
+    <!-- Left wall sconce -->
+    <rect x="50" y="130" width="20" height="28" rx="3" fill="rgba(212,175,55,0.15)" stroke="rgba(212,175,55,0.35)" stroke-width="0.8"/>
+    <rect x="54" y="134" width="12" height="16" rx="2" fill="rgba(255,215,80,0.25)"/>
+    <circle cx="60" cy="142" r="4" fill="rgba(255,215,80,0.35)"/>
+    <ellipse cx="60" cy="175" rx="50" ry="40" fill="rgba(212,175,55,0.04)"/>
+
+    <!-- Right wall sconce -->
+    <rect x="610" y="130" width="20" height="28" rx="3" fill="rgba(212,175,55,0.15)" stroke="rgba(212,175,55,0.35)" stroke-width="0.8"/>
+    <rect x="614" y="134" width="12" height="16" rx="2" fill="rgba(255,215,80,0.25)"/>
+    <circle cx="620" cy="142" r="4" fill="rgba(255,215,80,0.35)"/>
+    <ellipse cx="620" cy="175" rx="50" ry="40" fill="rgba(212,175,55,0.04)"/>
+
+    <!-- Left wall art / frame -->
+    <rect x="30" y="190" width="60" height="80" rx="3" fill="rgba(10,15,30,0.5)" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
+    <rect x="35" y="195" width="50" height="70" rx="2" fill="rgba(212,175,55,0.04)"/>
+    <!-- Abstract art inside frame -->
+    <path d="M40 230 L55 210 L70 235 L60 255 L45 245 Z" fill="rgba(212,175,55,0.08)" stroke="rgba(212,175,55,0.15)" stroke-width="0.5"/>
+    <circle cx="55" cy="220" r="10" fill="rgba(212,175,55,0.05)"/>
+
+    <!-- Right wall art / frame -->
+    <rect x="590" y="190" width="60" height="80" rx="3" fill="rgba(10,15,30,0.5)" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
+    <rect x="595" y="195" width="50" height="70" rx="2" fill="rgba(212,175,55,0.04)"/>
+    <!-- Abstract art inside frame -->
+    <path d="M600 230 L615 210 L630 235 L620 255 L605 245 Z" fill="rgba(212,175,55,0.08)" stroke="rgba(212,175,55,0.15)" stroke-width="0.5"/>
+    <circle cx="615" cy="220" r="10" fill="rgba(212,175,55,0.05)"/>
+
+    <!-- Floor -->
+    <rect x="0" y="400" width="680" height="110" fill="url(#floor)"/>
+    <!-- Floor line / perspective -->
+    <line x1="0" y1="400" x2="680" y2="400" stroke="rgba(212,175,55,0.08)" stroke-width="0.8"/>
+    <!-- Tile pattern on floor -->
+    <g opacity="0.06" stroke="rgba(212,175,55,0.5)" stroke-width="0.4">
+      <line x1="0" y1="420" x2="680" y2="420"/>
+      <line x1="0" y1="445" x2="680" y2="445"/>
+      <line x1="0" y1="470" x2="680" y2="470"/>
+      <line x1="0" y1="495" x2="680" y2="495"/>
+      <line x1="170" y1="400" x2="170" y2="510"/>
+      <line x1="340" y1="400" x2="340" y2="510"/>
+      <line x1="510" y1="400" x2="510" y2="510"/>
+    </g>
+
+    <!-- Floor reflection of the light cone -->
+    <ellipse cx="340" cy="430" rx="160" ry="18" fill="rgba(212,175,55,0.06)"/>
+
+    <!-- Chandelier -->
+    <line x1="340" y1="0" x2="340" y2="32" stroke="rgba(212,175,55,0.5)" stroke-width="0.8"/>
+    <line x1="340" y1="32" x2="315" y2="48" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <line x1="340" y1="32" x2="365" y2="48" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <line x1="340" y1="32" x2="340" y2="52" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <circle cx="315" cy="48" r="4" fill="rgba(255,215,80,0.2)" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <circle cx="365" cy="48" r="4" fill="rgba(255,215,80,0.2)" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <circle cx="340" cy="52" r="4" fill="rgba(255,215,80,0.2)" stroke="rgba(212,175,55,0.4)" stroke-width="0.6"/>
+    <circle cx="340" cy="52" r="2" fill="rgba(255,215,80,0.35)"/>
+
+    <!-- Light cone from chandelier -->
+    <polygon points="310,55 370,55 450,400 230,400" fill="url(#lightCone)"/>
+
+    <!-- Door on the left -->
+    <rect x="20" y="290" width="55" height="110" rx="2" fill="rgba(10,15,30,0.6)" stroke="rgba(212,175,55,0.12)" stroke-width="0.6"/>
+    <rect x="34" y="300" width="27" height="36" rx="1.5" fill="rgba(212,175,55,0.04)" stroke="rgba(212,175,55,0.08)" stroke-width="0.4"/>
+    <circle cx="68" cy="350" r="2" fill="rgba(212,175,55,0.2)"/>
+    <!-- Door number -->
+    <text x="47" y="340" font-family="Georgia, serif" font-size="8" fill="rgba(212,175,55,0.25)" text-anchor="middle">3</text>
+
+    <!-- Door on the right -->
+    <rect x="605" y="290" width="55" height="110" rx="2" fill="rgba(10,15,30,0.6)" stroke="rgba(212,175,55,0.12)" stroke-width="0.6"/>
+    <rect x="619" y="300" width="27" height="36" rx="1.5" fill="rgba(212,175,55,0.04)" stroke="rgba(212,175,55,0.08)" stroke-width="0.4"/>
+    <circle cx="612" cy="350" r="2" fill="rgba(212,175,55,0.2)"/>
+    <text x="632" y="340" font-family="Georgia, serif" font-size="8" fill="rgba(212,175,55,0.25)" text-anchor="middle">5</text>
+
+    <!-- Door dead centre (far end of corridor) -->
+    <rect x="310" y="270" width="60" height="130" rx="2" fill="rgba(212,175,55,0.03)" stroke="rgba(212,175,55,0.15)" stroke-width="0.8"/>
+    <rect x="325" y="282" width="30" height="40" rx="2" fill="rgba(212,175,55,0.05)" stroke="rgba(212,175,55,0.1)" stroke-width="0.5"/>
+    <circle cx="362" cy="340" r="2.5" fill="rgba(212,175,55,0.3)"/>
+    <text x="340" y="320" font-family="Georgia, serif" font-size="9" fill="rgba(212,175,55,0.2)" text-anchor="middle" letter-spacing="2">W</text>
+
+    <!-- Carpet runner -->
+    <rect x="240" y="400" width="200" height="110" rx="2" fill="rgba(212,175,55,0.04)"/>
+    <rect x="240" y="400" width="200" height="110" rx="2" fill="none" stroke="rgba(212,175,55,0.08)" stroke-width="0.6"/>
+    <g opacity="0.06">
+      <path d="M260 410 L280 410 L280 420 L260 420 Z" fill="rgba(212,175,55,0.4)"/>
+      <path d="M300 410 L320 410 L320 420 L300 420 Z" fill="rgba(212,175,55,0.4)"/>
+      <path d="M340 410 L360 410 L360 420 L340 420 Z" fill="rgba(212,175,55,0.4)"/>
+      <path d="M380 410 L400 410 L400 420 L380 420 Z" fill="rgba(212,175,55,0.4)"/>
+      <path d="M420 410 L440 410 L440 420 L420 420 Z" fill="rgba(212,175,55,0.4)"/>
+    </g>
+
+    <!-- Subtle gold border on the whole scene -->
+    <rect x="0" y="0" width="680" height="510" fill="none" stroke="rgba(212,175,55,0.12)" stroke-width="1"/>
+  </svg>
+
+  <div class="overlay">
+    <div>
+      <h1>404</h1>
+      <p>This corridor leads nowhere</p>
+      <a href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex:none"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Return to the lobby
+      </a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
