@@ -6,14 +6,12 @@ services:
     plan: starter
     branch: main
     repo: https://github.com/Iconvibes/Wura
-    buildCommand: "npm install && npm run setup && npm run build"
-    startCommand: "npm start"
+    buildCommand: "npm --prefix server install"
+    startCommand: "npm --prefix server start"
     envVars:
       - key: MONGODB_URI
         value: "<your-mongodb-uri-here>"
       - key: JWT_SECRET
         value: "<change-this-secret>"
-      - key: PORT
-        value: "5000"
     healthCheckPath: "/api/rooms"
     autoDeploy: true
