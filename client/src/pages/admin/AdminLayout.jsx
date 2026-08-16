@@ -6,7 +6,7 @@ import { toast } from '../../components/Toast.jsx';
 import { ADMIN_PATH } from '../../lib/adminPath.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.jsx';
 
-const NAV = [
+const NAV_ALL = [
   [ADMIN_PATH, 'overview', 'Overview', 'chart'],
   [`${ADMIN_PATH}/front-desk`, 'front-desk', 'Front Desk', 'bell'],
   [`${ADMIN_PATH}/bookings`, 'bookings', 'Bookings', 'bookings'],
@@ -14,6 +14,14 @@ const NAV = [
   [`${ADMIN_PATH}/inbox`, 'inbox', 'Inbox', 'mail'],
   [`${ADMIN_PATH}/settings`, 'settings', 'Settings', 'shield'],
 ];
+
+// Front-desk staff see the desk + inbox only; everything else is admin.
+const NAV_BY_ROLE = {
+  admin: NAV_ALL,
+  staff: NAV_ALL.filter(([, key]) => key === 'front-desk' || key === 'inbox'),
+};
+const ADMIN_ONLY_VIEWS = new Set(['overview', 'bookings', 'rooms', 'settings']);
+const ROLE_LABELS = { admin: 'Administrator', staff: 'Front desk staff' };
 
 // Per-view tab labels so the staff portal never shows the guest home title.
 const VIEW_TITLES = {
@@ -30,21 +38,23 @@ export default function AdminLayout() {
   const location = useLocation();
   const token = localStorage.getItem('wura_token');
   const [unread, setUnread] = useState(0);
+  const [user, setUser] = useState(null); // { username, role } from /me
 
   // Staff titles + drops the guest-site hero preload (admin has no hero — the
   // server strips it too, this keeps the head clean after SPA navigation).
   const rel = location.pathname.slice(ADMIN_PATH.length).replace(/^\/+/, '').split('/')[0] || 'overview';
   usePageMeta(`${VIEW_TITLES[rel] || 'Staff Portal'} — Wura Grand Staff Portal`, 'Staff portal for Wura Grand Hotel — bookings, front desk, rooms and guest messages.');
 
-  // Verify the stored token on mount. api() already redirects to /admin/login
-  // on a 401, so the catch here only handles non-auth failures quietly. The
-  // unread count refreshes on every navigation so the Inbox badge stays in
-  // sync after messages are read or deleted inside the panel.
+  // Verify the stored token on mount and learn the session's role. api()
+  // already redirects to /admin/login on a 401, so the catch here only handles
+  // non-auth failures quietly.
   useEffect(() => {
     if (!token) return;
-    api('/api/admin/me').catch(() => {});
+    api('/api/admin/me')
+      .then((d) => setUser(d.user))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
@@ -62,6 +72,13 @@ export default function AdminLayout() {
   }, [token, location.pathname]);
 
   if (!token) return <Navigate to={`${ADMIN_PATH}/login`} replace />;
+
+  // Staff land on the front desk and are redirected away from admin-only views.
+  const isStaff = user?.role === 'staff';
+  if (isStaff && ADMIN_ONLY_VIEWS.has(rel)) {
+    return <Navigate to={`${ADMIN_PATH}/front-desk`} replace />;
+  }
+  const navItems = user ? NAV_BY_ROLE[user.role] || NAV_BY_ROLE.staff : [];
 
   const logout = () => {
     localStorage.removeItem('wura_token');
@@ -82,7 +99,7 @@ export default function AdminLayout() {
         </a>
 
         <nav className="space-y-1">
-          {NAV.map(([path, key, label, icon]) => (
+          {navItems.map(([path, key, label, icon]) => (
             <NavLink key={path} to={path} end={path === ADMIN_PATH}
               className={({ isActive }) => `side-item ${isActive ? 'active' : ''}`}>
               {Icon({ name: icon, size: 18 })}
@@ -98,10 +115,12 @@ export default function AdminLayout() {
 
         <div className="mt-auto space-y-3">
           <div className="flex items-center gap-3 px-2 pt-4 border-t border-white/5">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-bold text-navy-950 text-sm">A</div>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-bold text-navy-950 text-sm">
+              {user?.username?.charAt(0).toUpperCase() || 'W'}
+            </div>
             <div>
-              <div className="text-[13px] font-bold text-cream">admin</div>
-              <div className="text-[11px] text-dim">Front desk staff</div>
+              <div className="text-[13px] font-bold text-cream">{user?.username || '…'}</div>
+              <div className="text-[11px] text-dim">{ROLE_LABELS[user?.role] || 'Staff'}</div>
             </div>
           </div>
           <button className="side-item" onClick={logout}>
@@ -118,7 +137,7 @@ export default function AdminLayout() {
           <button className="btn btn-ghost btn-sm" onClick={logout}>Sign out</button>
         </div>
         <nav className="flex gap-1.5 overflow-x-auto px-3 pb-3">
-          {NAV.map(([path, key, label, icon]) => (
+          {navItems.map(([path, key, label, icon]) => (
             <NavLink key={path} to={path} end={path === ADMIN_PATH}
               className={({ isActive }) => `side-item !py-2 !px-3.5 whitespace-nowrap ${isActive ? 'active' : ''}`}>
               {Icon({ name: icon, size: 16 })}
@@ -136,7 +155,7 @@ export default function AdminLayout() {
       {/* main */}
       {/* div, not <main> — App.jsx already provides the single main landmark */}
       <div className="flex-1 min-w-0 px-4 sm:px-8 pt-16 md:pt-8 pb-16">
-        <Outlet />
+        <Outlet context={{ user }} />
       </div>
     </div>
   );

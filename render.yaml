@@ -6,7 +6,42 @@ services:
     plan: starter
     branch: main
     repo: https://github.com/Iconvibes/Wura
-    buildCommand: "npm install && npm run setup && npm run build"
+    # Setup → regenerate the branded social cards + responsive image variants
+    # (idempotent, ~90s) → Vite build. The Express server then serves client/dist.
+    buildCommand: "npm install && npm run setup && npm run generate:social && npm run generate:images && npm run build"
     startCommand: "npm start"
-    healthCheckPath: "/health"
+    healthCheckPath: /health
     autoDeploy: true
+    envVars:
+      # Your Atlas connection string — fill this in after the service is created
+      # (Render cannot generate it). Without it the server runs an in-memory
+      # MongoDB and ALL data resets on every restart/redeploy.
+      - key: MONGODB_URI
+        sync: false
+      # Secrets Render generates for you (long random values) — JWT signs admin
+      # tokens; ADMIN_RESET_SECRET enables the forgot-access-code recovery flow.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_RESET_SECRET
+        generateValue: true
+      # Staff access code (first login gate). Rotating it in the admin Settings
+      # view overrides this value.
+      - key: ADMIN_ACCESS_CODE
+        value: WURA-1962
+      # Build-time admin panel URL + quick-access fragment (baked into the bundle).
+      - key: VITE_ADMIN_PATH
+        value: /hotel-staff-9k2x7
+      - key: VITE_ADMIN_FRAGMENT
+        value: staff-access-7k2x
+      # Stripe — leave blank for the sandbox mock-checkout flow; fill in for
+      # real card payments (test keys work too).
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Where checkout success/cancel redirects point after paying.
+      - key: CLIENT_ORIGIN
+        value: https://wura-y0y5.onrender.com
+      # Keep-alive self-ping is on by default in production; explicit for clarity.
+      - key: KEEPALIVE
+        value: "1"

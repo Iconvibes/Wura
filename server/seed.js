@@ -198,9 +198,16 @@ export function assignRoomNumbers(rooms) {
 export async function seedIfEmpty() {
   const userCount = await User.countDocuments();
   if (userCount === 0) {
-    const password_hash = await bcrypt.hash('admin123', 10);
-    await User.create({ username: 'admin', password_hash });
+    const adminHash = await bcrypt.hash('admin123', 10);
+    await User.create({ username: 'admin', password_hash: adminHash, role: 'admin' });
     console.log('  seeded admin user (admin / admin123)');
+    // Demo front-desk account so the staff role is usable out of the box.
+    const deskHash = await bcrypt.hash('desk123', 10);
+    await User.create({ username: 'desk', password_hash: deskHash, role: 'staff' });
+    console.log('  seeded staff user (desk / desk123)');
+  } else {
+    // Pre-role databases: the single existing account was the full-access one.
+    await User.updateMany({ role: { $exists: false } }, { $set: { role: 'admin' } });
   }
 
   const roomCount = await Room.countDocuments();

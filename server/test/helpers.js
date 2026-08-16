@@ -46,7 +46,21 @@ export function resetLoginLimits() {
 
 export async function createAdminUser(overrides = {}) {
   const password_hash = await bcrypt.hash('admin123', 4); // low cost = fast tests
-  return User.create({ username: 'admin', password_hash, ...overrides });
+  return User.create({ username: 'admin', password_hash, role: 'admin', ...overrides });
+}
+
+/** Create a front-desk (staff) user for role-gating tests. */
+export async function createStaffUser(overrides = {}) {
+  const password_hash = await bcrypt.hash('desk123', 4);
+  return User.create({ username: 'desk', password_hash, role: 'staff', ...overrides });
+}
+
+/** Login as a specific account and return a JWT. */
+export async function loginAs(username, password, accessCode = 'WURA-1962') {
+  const res = await request(app)
+    .post('/api/admin/login')
+    .send({ username, password, access_code: accessCode });
+  return res.body.token;
 }
 
 /** Login as the seeded admin and return a JWT. */

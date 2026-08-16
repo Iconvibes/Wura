@@ -49,6 +49,68 @@ describe('admin inbox API', () => {
     expect(res.body.messages[0].message).toContain('Deluxe Garden');
   });
 
+  it('paginates with limit/offset and reports the total', async () => {
+    await postEnquiry({ name: 'Guest One' });
+    await postEnquiry({ name: 'Guest Two' });
+    await postEnquiry({ name: 'Guest Three' });
+
+    const page1 = await request(app)
+      .get('/api/admin/messages?limit=2&offset=0')
+      .set('Authorization', `Bearer ${await login()}`)
+      .expect(200);
+    expect(page1.body.messages).toHaveLength(2);
+    expect(page1.body.total).toBe(3);
+    expect(page1.body.messages[0].name).toBe('Guest Three'); // newest first
+    expect(page1.body.messages[1].name).toBe('Guest Two');
+
+    const page2 = await request(app)
+      .get('/api/admin/messages?limit=2&offset=2')
+      .set('Authorization', `Bearer ${await login()}`)
+      .expect(200);
+    expect(page2.body.messages).toHaveLength(1);
+    expect(page2.body.messages[0].name).toBe('Guest One');
+    expect(page2.body.total).toBe(3);
+  });
+
+  it('returns an empty window past the end and keeps unread global', async () => {
+    await postEnquiry({ name: 'A' });
+    await postEnquiry({ name: 'B' });
+    const first = await Message.findOne({ name: 'A' }).lean();
+    await request(app)
+      .patch(`/api/admin/messages/${first._id}`)
+      .set('Authorization', `Bearer ${await login()}`)
+      .send({ read: true })
+      .expect(200);
+
+    const tail = await request(app)
+      .get('/api/admin/messages?limit=2&offset=5')
+      .set('Authorization', `Bearer ${await login()}`)
+      .expect(200);
+    expect(tail.body.messages).toHaveLength(0);
+    expect(tail.body.total).toBe(2);
+    expect(tail.body.unread).toBe(1); // counts the whole box, not the window
+  });
+
+  it('defaults to 25 and caps the limit at 50', async () => {
+    for (let i = 0; i < 55; i++) {
+      __resetContactLimits(); // contact form allows only 5 per window
+      await postEnquiry({ name: `Bulk ${i}` });
+    }
+
+    const byDefault = await request(app)
+      .get('/api/admin/messages')
+      .set('Authorization', `Bearer ${await login()}`)
+      .expect(200);
+    expect(byDefault.body.messages).toHaveLength(25);
+    expect(byDefault.body.total).toBe(55);
+
+    const capped = await request(app)
+      .get('/api/admin/messages?limit=999')
+      .set('Authorization', `Bearer ${await login()}`)
+      .expect(200);
+    expect(capped.body.messages).toHaveLength(50);
+  });
+
   it('marks a message read, and unread again', async () => {
     await postEnquiry();
     const msg = await Message.findOne().lean();

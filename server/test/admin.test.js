@@ -2,6 +2,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
+import mongoose from 'mongoose';
 import {
   app, startTestDB, stopTestDB, clearDB, createAdminUser, login, makeRoom, makeBooking, bookingPayload,
 } from './helpers.js';
@@ -195,6 +196,101 @@ describe('rooms CRUD', () => {
       .send({ image: `data:image/png;base64,${Buffer.from('definitely not an image').toString('base64')}` })
       .expect(400);
     expect(badMagic.body.error).toMatch(/magic|content|type/i);
+  });
+
+  it('serves an uploaded photo back from GridFS (survives redeploys)', async () => {
+    const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const up = await request(app)
+      .post('/api/admin/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ image: `data:image/png;base64,${PNG}` })
+      .expect(201);
+
+    // The photo resolves through the public URL with the right bytes + type.
+    const got = await request(app).get(up.body.url).expect(200);
+    expect(got.headers['content-type']).toBe('image/png');
+    expect(got.body).toEqual(Buffer.from(PNG, 'base64'));
+    expect(got.headers['cache-control']).toMatch(/immutable/);
+
+    // And it lives in GridFS (bucket 'uploads'), not on local disk.
+    const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+    const name = up.body.url.split('/').pop();
+    const docs = await bucket.find({ filename: name }).toArray();
+    expect(docs).toHaveLength(1);
+    expect(docs[0].contentType).toBe('image/png');
+  });
+
+  it('prunes the GridFS file when a room replaces an uploaded photo', async () => {
+    const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const upload = () =>
+      request(app)
+        .post('/api/admin/upload')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ image: `data:image/png;base64,${PNG}` })
+        .then((r) => r.body.url);
+    const bucketNames = async () => {
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+      return (await bucket.find({}).toArray()).map((f) => f.filename);
+    };
+
+    const a = await upload();
+    const b = await upload();
+    const room = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Photo Room', type: 'Deluxe', description: 'd', price: 200, capacity: 2, photos: [a, b] })
+      .expect(201);
+
+    const c = await upload();
+    await request(app)
+      .patch(`/api/admin/rooms/${room.body.room.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ photos: [a, c] })
+      .expect(200);
+
+    const names = await bucketNames();
+    expect(names).toContain(a.split('/').pop());
+    expect(names).toContain(c.split('/').pop());
+    expect(names).not.toContain(b.split('/').pop()); // replaced photo is freed
+  });
+
+  it('keeps an upload shared by another room, frees it once unreferenced, and cleans up on room delete', async () => {
+    const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const upload = () =>
+      request(app)
+        .post('/api/admin/upload')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ image: `data:image/png;base64,${PNG}` })
+        .then((r) => r.body.url);
+    const bucketNames = async () => {
+      const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+      return (await bucket.find({}).toArray()).map((f) => f.filename);
+    };
+
+    const shared = await upload();
+    const onlyB = await upload();
+    const base = { type: 'Deluxe', description: 'd', price: 200, capacity: 2 };
+    const roomA = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Room A', ...base, photos: [shared] })
+      .expect(201);
+    const roomB = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Room B', ...base, photos: [shared, onlyB] })
+      .expect(201);
+
+    // Delete room B: the shared photo survives (room A still uses it), onlyB is freed.
+    await request(app).delete(`/api/admin/rooms/${roomB.body.room.id}`).set('Authorization', `Bearer ${token}`).expect(200);
+    let names = await bucketNames();
+    expect(names).toContain(shared.split('/').pop());
+    expect(names).not.toContain(onlyB.split('/').pop());
+
+    // Delete room A: the last reference is gone, so the bucket empties.
+    await request(app).delete(`/api/admin/rooms/${roomA.body.room.id}`).set('Authorization', `Bearer ${token}`).expect(200);
+    names = await bucketNames();
+    expect(names).toHaveLength(0);
   });
 
   it('404s on malformed room ids for patch/delete', async () => {

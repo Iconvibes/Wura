@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { createApp } from './app.js';
 import { connectDB } from './db.js';
 import { seedIfEmpty } from './seed.js';
+import { migrateUploadsFromDisk } from './gridfs.js';
 import { startKeepAlive } from './keepalive.js';
 
 const PORT = Number(process.env.PORT) || 5000;
@@ -17,6 +18,17 @@ const app = createApp();
     await seedIfEmpty();
   } catch (e) {
     console.error('  Seed failed:', e.message);
+  }
+
+  // One-time-ish: pull any legacy data/uploads photos into GridFS so they
+  // survive redeploys (idempotent — already-imported names are skipped).
+  try {
+    const { imported } = await migrateUploadsFromDisk();
+    if (imported > 0) {
+      console.log(`  🧳 migrated ${imported} legacy upload${imported > 1 ? 's' : ''} into GridFS`);
+    }
+  } catch (e) {
+    console.warn('  ⚠ upload migration failed:', e.message);
   }
 
   const candidates = [PORT, 5000, 5001, 5174, 8080, 3000];

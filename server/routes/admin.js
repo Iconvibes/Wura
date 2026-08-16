@@ -3,23 +3,16 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import fs from 'node:fs';
-import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import User from '../models/User.js';
 import Room from '../models/Room.js';
 import Booking from '../models/Booking.js';
 import Message from '../models/Message.js';
 import Setting from '../models/Setting.js';
 import { roomToJson, bookingToJson, today, addDays } from '../lib.js';
-import { requireAuth, signToken } from '../middleware.js';
+import { requireAuth, requireRole, signToken } from '../middleware.js';
 import { roomArt } from '../roomArt.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Admin-uploaded photography lives in data/uploads (gitignored) and is served
-// at /images/uploads by app.js — never committed with the repo.
-const UPLOADS_DIR = path.join(__dirname, '..', '..', 'data', 'uploads');
+import { saveUpload, pruneUploads } from '../gridfs.js';
 
 const router = Router();
 
@@ -56,6 +49,30 @@ function sanitizePhotos(photos) {
   const clean = [...new Set(photos.map((p) => String(p).trim()).filter((p) => PHOTO_RE.test(p)))];
   if (clean.length > 2) return { error: 'Choose up to 2 photos — the first is the card image.' };
   return { photos: clean };
+}
+
+/**
+ * Orphan sweep: delete GridFS uploads no room references anymore. Runs after a
+ * room's photos change or a room is deleted, so replaced/removed photos are
+ * freed from the uploads bucket instead of accumulating forever. Pool photos
+ * (/images/rooms/…) live in the repo, not the bucket, so they're untouched.
+ */
+async function pruneOrphanUploads() {
+  try {
+    const rooms = await Room.find().select('photos').lean();
+    const referenced = new Set();
+    for (const r of rooms) {
+      for (const p of r.photos || []) {
+        const m = String(p).match(/^\/images\/uploads\/([a-z0-9-]+\.(?:jpg|jpeg|png|webp))$/i);
+        if (m) referenced.add(m[1]);
+      }
+    }
+    const removed = await pruneUploads(referenced);
+    if (removed > 0) console.log(`  🧹 pruned ${removed} orphaned upload${removed > 1 ? 's' : ''}`);
+  } catch (e) {
+    // Never fail a room mutation because cleanup hiccuped — log and move on.
+    console.warn('  ⚠ upload prune failed:', e.message);
+  }
 }
 
 // Staff access code — required on login so the panel is staff-only even if the
@@ -155,6 +172,22 @@ router.post('/verify-code', loginRateLimit, async (req, res, next) => {
   }
 });
 
+/* --------------------------- POST /account-info --------------------------- */
+// Pre-login role lookup for the login page badge: after the access code is
+// accepted, staff see which role the account they're typing has before they
+// sign in. Same per-IP rate limiter as the code gate, and only reachable once
+// the code has been accepted — anyone past that gate is staff already.
+router.post('/account-info', loginRateLimit, async (req, res, next) => {
+  try {
+    const { username } = req.body || {};
+    const user = await User.findOne({ username: String(username || '').trim() }).select('role').lean();
+    if (!user) return res.json({ role: null });
+    res.json({ role: user.role || 'staff' });
+  } catch (e) {
+    next(e);
+  }
+});
+
 /* ------------------------------ POST /login ------------------------------- */
 router.post('/login', loginRateLimit, async (req, res, next) => {
   try {
@@ -167,7 +200,8 @@ router.post('/login', loginRateLimit, async (req, res, next) => {
     if (!user || !(await bcrypt.compare(String(password || ''), user.password_hash))) {
       return res.status(401).json({ error: 'Invalid username or password.' });
     }
-    res.json({ token: signToken(user.username), user: { username: user.username } });
+    const role = user.role || 'staff';
+    res.json({ token: signToken(user.username, role), user: { username: user.username, role } });
   } catch (e) {
     next(e);
   }
@@ -209,16 +243,24 @@ router.post('/recover-access-code', loginRateLimit, async (req, res, next) => {
 router.use(requireAuth);
 
 /* --------------------------------- GET /me -------------------------------- */
-router.get('/me', (req, res) => {
-  res.json({ user: { username: req.user.username } });
+router.get('/me', async (req, res, next) => {
+  try {
+    // Role comes from the token for speed, but re-read the account so a
+    // demotion takes effect before the token expires.
+    const user = await User.findOne({ username: req.user.username }).select('username role').lean();
+    if (!user) return res.status(401).json({ error: 'Account no longer exists.' });
+    res.json({ user: { username: user.username, role: user.role || 'staff' } });
+  } catch (e) {
+    next(e);
+  }
 });
 
 /* --------------------------- POST /access-code ----------------------------- */
-// Rotate the staff access code. Only a signed-in admin can do this; the
-// current code must be supplied as proof (so a stolen session alone can't lock
-// staff out). Takes effect immediately — the login and verify-code gates read
-// the DB-backed value on the next attempt.
-router.post('/access-code', async (req, res, next) => {
+// Rotate the staff access code. Admin-only; the current code must be supplied
+// as proof (so a stolen session alone can't lock staff out). Takes effect
+// immediately — the login and verify-code gates read the DB-backed value on
+// the next attempt.
+router.post('/access-code', requireRole('admin'), async (req, res, next) => {
   try {
     const { current_code, code } = req.body || {};
     const current = await getAccessCode();
@@ -234,6 +276,39 @@ router.post('/access-code', async (req, res, next) => {
     }
     await Setting.findOneAndUpdate({ key: SETTING_ACCESS_CODE }, { value: nextCode }, { upsert: true });
     invalidateAccessCodeCache();
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/* ------------------------- POST /change-password --------------------------- */
+// Rotate the signed-in user's own password. The current password must be
+// supplied as proof (a stolen session alone can't hijack the account), and the
+// change takes effect immediately for future logins.
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
+
+router.post('/change-password', async (req, res, next) => {
+  try {
+    const { current_password, new_password } = req.body || {};
+    const user = await User.findOne({ username: req.user.username });
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
+
+    if (!(await bcrypt.compare(String(current_password || ''), user.password_hash))) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    const next = String(new_password || '');
+    if (next.length < PASSWORD_MIN || next.length > PASSWORD_MAX) {
+      return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}–${PASSWORD_MAX} characters.` });
+    }
+    if (next === String(current_password || '')) {
+      return res.status(400).json({ error: 'New password must be different from the current one.' });
+    }
+
+    user.password_hash = await bcrypt.hash(next, 10);
+    await user.save();
     res.json({ ok: true });
   } catch (e) {
     next(e);
@@ -261,7 +336,7 @@ router.get('/front-desk', async (req, res) => {
 });
 
 /* -------------------------------- GET /overview --------------------------- */
-router.get('/overview', async (req, res) => {
+router.get('/overview', requireRole('admin'), async (req, res) => {
   const todayStr = today();
 
   const [totalRooms, activeRooms, arrivals, departures] = await Promise.all([
@@ -336,7 +411,7 @@ router.get('/overview', async (req, res) => {
 });
 
 /* ------------------------------ GET /bookings ----------------------------- */
-router.get('/bookings', async (req, res) => {
+router.get('/bookings', requireRole('admin'), async (req, res) => {
   const status = req.query.status;
   const payment = req.query.payment;
   const q = {};
@@ -350,10 +425,15 @@ router.get('/bookings', async (req, res) => {
 });
 
 /* ------------------------- PATCH /bookings/:id ---------------------------- */
+// Role-aware: staff may only check guests in/out at the front desk; anything
+// else (confirming, cancelling) is admin-only.
 router.patch('/bookings/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Booking not found.' });
   const allowed = ['confirmed', 'checked_in', 'checked_out', 'cancelled'];
   if (!allowed.includes(req.body?.status)) return res.status(400).json({ error: 'Invalid status.' });
+  if (req.user.role !== 'admin' && !['checked_in', 'checked_out'].includes(req.body.status)) {
+    return res.status(403).json({ error: 'Admin access required for this action.' });
+  }
   const booking = await Booking.findByIdAndUpdate(
     req.params.id,
     { status: req.body.status },
@@ -364,7 +444,7 @@ router.patch('/bookings/:id', async (req, res) => {
 });
 
 /* -------------------------- DELETE /bookings/:id -------------------------- */
-router.delete('/bookings/:id', async (req, res) => {
+router.delete('/bookings/:id', requireRole('admin'), async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Booking not found.' });
   const result = await Booking.findByIdAndDelete(req.params.id);
   if (!result) return res.status(404).json({ error: 'Booking not found.' });
@@ -372,11 +452,22 @@ router.delete('/bookings/:id', async (req, res) => {
 });
 
 /* ------------------------------ GET /messages ----------------------------- */
+// Paginated: the client requests a window (default 25, capped at 50) and gets
+// the full `total` back so it can decide whether to show a 'Load more' button.
+// `unread` stays a global count so the badge never depends on the window.
 router.get('/messages', async (req, res) => {
-  const messages = await Message.find()
-    .sort({ created_at: -1 })
-    .select('-__v')
-    .lean();
+  const limit = Math.min(parseInt(req.query.limit, 10) || 25, 50);
+  const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+  const [messages, total, unreadCount] = await Promise.all([
+    Message.find()
+      .sort({ created_at: -1 })
+      .skip(offset)
+      .limit(limit)
+      .select('-__v')
+      .lean(),
+    Message.countDocuments(),
+    Message.countDocuments({ read: false }),
+  ]);
   res.json({
     messages: messages.map((m) => ({
       ...m,
@@ -385,7 +476,8 @@ router.get('/messages', async (req, res) => {
       sent_at: m.sent_at ? m.sent_at.toISOString() : null,
       created_at: m.created_at.toISOString(),
     })),
-    unread: messages.filter((m) => !m.read).length,
+    total,
+    unread: unreadCount,
   });
 });
 
@@ -417,35 +509,42 @@ router.delete('/messages/:id', async (req, res) => {
 });
 
 /* ------------------------------ POST /upload ------------------------------ */
-// Admin photo upload: accepts a data-URL image (PNG/JPEG/WebP) and stores it
-// under data/uploads, served at /images/uploads/…. The larger JSON body limit
-// for this route is mounted in app.js before the global 1mb parser.
-router.post('/upload', async (req, res) => {
-  const { image } = req.body || {};
-  if (typeof image !== 'string') {
-    return res.status(400).json({ error: 'Provide an image as a data URL.' });
+// Admin photo upload: accepts a data-URL image (PNG/JPEG/WebP) and stores it in
+// MongoDB GridFS (persists across redeploys), served at /images/uploads/…. The
+// larger JSON body limit for this route is mounted in app.js before the global
+// 1mb parser.
+router.post('/upload', requireRole('admin'), async (req, res, next) => {
+  try {
+    const { image } = req.body || {};
+    if (typeof image !== 'string') {
+      return res.status(400).json({ error: 'Provide an image as a data URL.' });
+    }
+    const m = image.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
+    if (!m) return res.status(400).json({ error: 'Unsupported image format — PNG, JPEG or WebP only.' });
+    const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+    const buf = Buffer.from(m[2], 'base64');
+    if (buf.length === 0 || buf.length > 8 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Image is empty or larger than 8 MB.' });
+    }
+    // Verify the magic bytes so a disguised payload can't be stored as an image.
+    const ok =
+      (ext === 'png' && buf.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') ||
+      (ext === 'jpg' && buf.subarray(0, 3).toString('hex') === 'ffd8ff') ||
+      (ext === 'webp' && buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP');
+    if (!ok) return res.status(400).json({ error: 'File content does not match its declared image type.' });
+    const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
+    const contentType = `image/${m[1] === 'jpeg' ? 'jpeg' : m[1]}`;
+    await saveUpload({ buffer: buf, filename: name, contentType });
+    res.status(201).json({ url: `/images/uploads/${name}` });
+  } catch (e) {
+    next(e);
   }
-  const m = image.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
-  if (!m) return res.status(400).json({ error: 'Unsupported image format — PNG, JPEG or WebP only.' });
-  const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
-  const buf = Buffer.from(m[2], 'base64');
-  if (buf.length === 0 || buf.length > 8 * 1024 * 1024) {
-    return res.status(400).json({ error: 'Image is empty or larger than 8 MB.' });
-  }
-  // Verify the magic bytes so a disguised payload can't be stored as an image.
-  const ok =
-    (ext === 'png' && buf.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') ||
-    (ext === 'jpg' && buf.subarray(0, 3).toString('hex') === 'ffd8ff') ||
-    (ext === 'webp' && buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP');
-  if (!ok) return res.status(400).json({ error: 'File content does not match its declared image type.' });
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
-  fs.writeFileSync(path.join(UPLOADS_DIR, name), buf);
-  res.status(201).json({ url: `/images/uploads/${name}` });
 });
 
 /* ------------------------------- GET /rooms ------------------------------- */
-router.get('/rooms', async (req, res) => {
+// Rooms & rates management is admin-only (staff see them read-only via the
+// guest site + front desk).
+router.get('/rooms', requireRole('admin'), async (req, res) => {
   const rooms = await Room.find().sort({ created_at: 1 }).lean();
   res.json({ rooms: rooms.map(roomToJson) });
 });
@@ -453,7 +552,7 @@ router.get('/rooms', async (req, res) => {
 /* ------------------------------ POST /rooms ------------------------------- */
 // Room numbers are the physical identity of a room (e.g. 1204). If the admin
 // leaves the number blank, the next free one is assigned automatically.
-router.post('/rooms', async (req, res) => {
+router.post('/rooms', requireRole('admin'), async (req, res) => {
   const { name, type, description, price, capacity, size_sqm, amenities, status, room_number } = req.body || {};
   if (!name || !type || !description || !(price > 0) || !(capacity > 0)) {
     return res.status(400).json({ error: 'Name, type, description, price and capacity are required.' });
@@ -488,7 +587,7 @@ router.post('/rooms', async (req, res) => {
 });
 
 /* ---------------------------- PATCH /rooms/:id ---------------------------- */
-router.patch('/rooms/:id', async (req, res) => {
+router.patch('/rooms/:id', requireRole('admin'), async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Room not found.' });
   const room = await Room.findById(req.params.id);
   if (!room) return res.status(404).json({ error: 'Room not found.' });
@@ -520,11 +619,12 @@ router.patch('/rooms/:id', async (req, res) => {
   }
   Object.assign(room, next);
   await room.save();
+  await pruneOrphanUploads();
   res.json({ room: roomToJson(room) });
 });
 
 /* --------------------------- DELETE /rooms/:id ---------------------------- */
-router.delete('/rooms/:id', async (req, res) => {
+router.delete('/rooms/:id', requireRole('admin'), async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Room not found.' });
   const future = await Booking.countDocuments({
     room: req.params.id,
@@ -534,7 +634,117 @@ router.delete('/rooms/:id', async (req, res) => {
   if (future) return res.status(409).json({ error: 'This room has upcoming bookings and cannot be deleted.' });
   const result = await Room.findByIdAndDelete(req.params.id);
   if (!result) return res.status(404).json({ error: 'Room not found.' });
+  await pruneOrphanUploads();
   res.json({ ok: true });
+});
+
+/* --------------------------- staff accounts (admin) ----------------------- */
+
+const USERNAME_RE = /^[a-zA-Z0-9._-]{3,32}$/;
+const ROLES = ['admin', 'staff'];
+
+function userToJson(u) {
+  return {
+    id: String(u._id),
+    username: u.username,
+    role: u.role || 'staff',
+    created_at: u.created_at ? u.created_at.toISOString() : null,
+  };
+}
+
+// Only the last admin must always exist — guards below keep the account from
+// locking the panel out entirely.
+async function adminCount() {
+  return User.countDocuments({ role: 'admin' });
+}
+
+/* ------------------------------- GET /users ------------------------------- */
+router.get('/users', requireRole('admin'), async (req, res) => {
+  const users = await User.find().sort({ created_at: 1 }).lean();
+  res.json({ users: users.map(userToJson) });
+});
+
+/* ------------------------------ POST /users ------------------------------- */
+router.post('/users', requireRole('admin'), async (req, res, next) => {
+  try {
+    const { username, password, role } = req.body || {};
+    const name = String(username || '').trim();
+    if (!USERNAME_RE.test(name)) {
+      return res.status(400).json({ error: 'Username must be 3–32 characters: letters, numbers, dot, dash or underscore.' });
+    }
+    const nextRole = role === 'admin' ? 'admin' : 'staff';
+    const pass = String(password || '');
+    if (pass.length < PASSWORD_MIN || pass.length > PASSWORD_MAX) {
+      return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}–${PASSWORD_MAX} characters.` });
+    }
+    if (await User.exists({ username: name })) {
+      return res.status(409).json({ error: `Username '${name}' is already taken.` });
+    }
+    const doc = await User.create({
+      username: name,
+      password_hash: await bcrypt.hash(pass, 10),
+      role: nextRole,
+    });
+    console.log(`  👤 created ${nextRole} account '${name}'`);
+    res.status(201).json({ user: userToJson(doc) });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/* ----------------------------- PATCH /users/:id --------------------------- */
+// Change a staff account's role or reset its password. Guards: you can't
+// change your own role (admin promotes/demotes others, never self-downgrade)
+// and the last admin can't be demoted.
+router.patch('/users/:id', requireRole('admin'), async (req, res, next) => {
+  try {
+    if (!validId(req.params.id)) return res.status(404).json({ error: 'Account not found.' });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
+
+    const { role, password } = req.body || {};
+    if (role !== undefined) {
+      if (!ROLES.includes(role)) return res.status(400).json({ error: 'Role must be admin or staff.' });
+      if (user.username === req.user.username) {
+        return res.status(400).json({ error: 'You cannot change your own role.' });
+      }
+      if (user.role === 'admin' && role !== 'admin' && (await adminCount()) <= 1) {
+        return res.status(400).json({ error: 'Cannot demote the last admin account.' });
+      }
+      user.role = role;
+    }
+    if (password !== undefined) {
+      const pass = String(password || '');
+      if (pass.length < PASSWORD_MIN || pass.length > PASSWORD_MAX) {
+        return res.status(400).json({ error: `Password must be ${PASSWORD_MIN}–${PASSWORD_MAX} characters.` });
+      }
+      user.password_hash = await bcrypt.hash(pass, 10);
+    }
+    await user.save();
+    res.json({ user: userToJson(user) });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/* ----------------------------- DELETE /users/:id -------------------------- */
+router.delete('/users/:id', requireRole('admin'), async (req, res, next) => {
+  try {
+    if (!validId(req.params.id)) return res.status(404).json({ error: 'Account not found.' });
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
+    if (user.username === req.user.username) {
+      return res.status(400).json({ error: 'You cannot delete your own account.' });
+    }
+    if (user.role === 'admin' && (await adminCount()) <= 1) {
+      return res.status(400).json({ error: 'Cannot delete the last admin account.' });
+    }
+    await User.findByIdAndDelete(req.params.id);
+    console.log(`  🗑 deleted account '${user.username}'`);
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

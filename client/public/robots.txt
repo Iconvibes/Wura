@@ -5,4 +5,4 @@ Allow: /
 # keep crawlers away from it explicitly.
 Disallow: /admin
 
-Sitemap: https://wuragrand.example/sitemap.xml
+Sitemap: https://wura-y0y5.onrender.com/sitemap.xml

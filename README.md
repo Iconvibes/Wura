@@ -55,8 +55,9 @@ would match and the crossfade would be skipped), and the veil is skipped under
 ## SEO readiness
 
 - `public/sitemap.xml` lists all 57 public URLs (7 static pages + all 50 rooms), and
-  `public/robots.txt` disallows `/admin`. **Replace the placeholder domain
-  `wuragrand.example` with the live domain before deploying.**
+  `public/robots.txt` disallows `/admin`. The sitemap is pre-pointed at the
+  live domain `wura-y0y5.onrender.com` — update the `<loc>` entries if you move
+  to a custom domain.
 - Every page sets its own `<title>` + meta description via the `usePageMeta` hook
   (including per-room titles like *“Deluxe King — Wura Grand Hotel”*), which also
   emits **Open Graph + Twitter Card tags** — `og:title`/`og:description`/`og:url`,
@@ -141,6 +142,12 @@ The booking flow carries dates/guests across pages: the hero widget hands off to
 All animations respect `prefers-reduced-motion`.
 ```
 
+## Deploying to Render
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** — credentials, env vars, pre/post-deploy
+checklists, Stripe webhooks, and troubleshooting. Read the pre-deploy checklist
+before your first push.
+
 ## Requirements
 
 - **Node.js 20+** (24 recommended)
@@ -164,7 +171,9 @@ Then open:
 | Express API | http://127.0.0.1:5000/api |
 | Admin panel | http://127.0.0.1:5173/hotel-staff-9k2x7 (access code `WURA-1962`, then admin / admin123) |
 
-> The admin panel is deliberately not linked from the public site. Visiting `/admin` (or any `/admin/*` path) returns a clean **404** for logged-out visitors and redirects logged-in staff to the real panel. The panel itself lives behind a non-obvious URL (override at build time with `VITE_ADMIN_PATH`) and is gated by a **two-step staff login**: the credential form is hidden until a **staff access code** is accepted (`POST /api/admin/verify-code`, server-enforced, override with `ADMIN_ACCESS_CODE`; both steps share the 10 / 15 min per-IP login rate limit, and `/login` re-checks the code as defense in depth). Signed-in admins can **rotate the access code at runtime** from the panel's *Settings* view (`POST /api/admin/access-code` — requires the current code; the new value is stored in MongoDB and takes effect immediately, so the old code stops working). When no stored code exists the `ADMIN_ACCESS_CODE` env value (or the dev default) is used. Staff can also reveal a quick-access **Admin** link in the public navbar by visiting the site with the secret fragment `#staff-access-7k2x` appended (override at build time with `VITE_ADMIN_FRAGMENT`).
+> The admin panel is deliberately not linked from the public site. Visiting `/admin` (or any `/admin/*` path) returns a clean **404** for logged-out visitors and redirects logged-in staff to the real panel.
+>
+> **Roles** — accounts are either **administrator** (everything: rooms & rates, bookings, settings, access code, staff accounts) or **front-desk staff** (check guests in/out and read the inbox, plus their own password). Staff are redirected to the Front Desk on sign-in and get a nav with just those two views; every admin-only API route returns `403` for them (`/api/admin/overview`, `/bookings`, `/rooms`, `/upload`, `/access-code`, `/users`), and booking status changes are restricted — staff may only send `checked_in`/`checked_out`. Admins manage accounts under **Settings → Staff accounts**: create staff/admin users, promote or demote, reset passwords, delete (guards: no self-delete, no self-demote, and the last admin can never be demoted or deleted). The seed creates `admin`/`admin123` (admin) and `desk`/`desk123` (staff). The panel itself lives behind a non-obvious URL (override at build time with `VITE_ADMIN_PATH`) and is gated by a **two-step staff login**: the credential form is hidden until a **staff access code** is accepted (`POST /api/admin/verify-code`, server-enforced, override with `ADMIN_ACCESS_CODE`; both steps share the 10 / 15 min per-IP login rate limit, and `/login` re-checks the code as defense in depth). Signed-in admins can **rotate the access code at runtime** from the panel's *Settings* view (`POST /api/admin/access-code` — requires the current code; the new value is stored in MongoDB and takes effect immediately, so the old code stops working). When no stored code exists the `ADMIN_ACCESS_CODE` env value (or the dev default) is used. If the code is ever forgotten, the login page's **Forgot the access code?** flow (`POST /api/admin/recover-access-code`, rate-limited like login) can set a new one using the deploy-level `ADMIN_RESET_SECRET` — no login or DB access required; the endpoint is disabled (403) unless that env var is configured, and comparisons are constant-time. Staff can also reveal a quick-access **Admin** link in the public navbar by visiting the site with the secret fragment `#staff-access-7k2x` appended (override at build time with `VITE_ADMIN_FRAGMENT`).
 
 ## Environment variables
 
@@ -178,6 +187,7 @@ Then open:
 | `STRIPE_WEBHOOK_SECRET` | — | Webhook signing secret from `stripe listen`. |
 | `CLIENT_ORIGIN` | http://127.0.0.1:5173 | Base URL used for Stripe success/cancel redirects. |
 | `ADMIN_ACCESS_CODE` | `WURA-1962` | Staff access code required on the admin login. |
+| `ADMIN_RESET_SECRET` | *(recovery disabled)* | Long random secret that lets a locked-out admin rotate the access code from the login page (no login/DB needed). Leave unset to keep recovery off. |
 | `VITE_ADMIN_PATH` | `/hotel-staff-9k2x7` | Client build-time override for the admin panel URL prefix. |
 | `VITE_ADMIN_FRAGMENT` | `staff-access-7k2x` | Secret URL fragment (`/#…`) that reveals the Admin quick-access link in the public navbar. |
 | `RENDER_EXTERNAL_URL` | — | Set by Render automatically. The keep-alive self-ping target (falls back to `APP_URL`, then `PUBLIC_URL`). |
@@ -216,7 +226,7 @@ Tests use `NODE_ENV=test`, which silences the email stub, enables the mock check
 ## Features
 
 - **Guest site** — hero, live booking widget, rooms grid with **search / sort / pagination**, 3-step booking modal, booking lookup by reference, gallery, testimonials
-- **Admin panel** — JWT login, stats dashboard with 30-day occupancy chart, **Front Desk** one-click check-in/out, booking management, room CRUD with maintenance toggle and a **photo picker** — when adding/editing a room the admin chooses up to 2 photos from the shared 100-photo pool or uploads their own (PNG/JPEG/WebP, stored in `data/uploads/`, served at `/images/uploads/`), which then override the type fallback on cards, detail galleries and social `og:image`
+- **Admin panel** — JWT login, stats dashboard with 30-day occupancy chart, **Front Desk** one-click check-in/out, booking management, room CRUD with maintenance toggle and a **photo picker** — when adding/editing a room the admin chooses up to 2 photos from the shared 100-photo pool or uploads their own (PNG/JPEG/WebP, stored in **MongoDB GridFS** so uploads survive redeploys — served at `/images/uploads/`, with a `data/uploads/` disk fallback for legacy files), which then override the type fallback on cards, detail galleries and social `og:image`
 - **Payments** — real **Stripe Checkout** (card payment, webhook-verified) integrated into the 3-step booking modal; bookings carry a `payment_status` (unpaid → paid) shown in the admin bookings table and Front Desk. Without a Stripe key the app runs a **sandbox mock checkout** page so the whole flow works offline with zero setup.
 - **Backend** — Express REST API, Mongoose models, token-bucket **rate limiting** on bookings *and* the contact form, plus **anti-bot defenses** on the contact form: a hidden **honeypot field** and a human-speed timing check (both silently 200-OK without storing, so spammers can't tell they're caught), **email confirmation stub** sent after payment (logged to `data/emails.log`), parameterized queries (no injection surface)
 - **Contact form** — `POST /api/contact` validates the enquiry (name/email/message, email format, length caps, 5-per-10-min per-IP limit) and logs it to `data/emails.log` via the same email stub as booking confirmations — swap `sendContactMessage` for a real mailer or CRM webhook when you have credentials.

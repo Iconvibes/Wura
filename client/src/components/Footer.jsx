@@ -61,7 +61,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-gold-500 mt-0.5">{I.calendar({ width: 16, height: 16 })}</span>
-                stay@wuragrand.example
+                stay@wura-y0y5.onrender.com
               </li>
             </ul>
           </div>

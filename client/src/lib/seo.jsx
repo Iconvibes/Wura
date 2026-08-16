@@ -22,7 +22,7 @@ export function hotelLD() {
       `${origin}/images/rooms/suite.jpg`,
     ],
     telephone: '+1-555-012-1962',
-    email: 'stay@wuragrand.example',
+    email: 'stay@wura-y0y5.onrender.com',
     priceRange: '$$$',
     foundingDate: '1962',
     checkinTime: '15:00',

@@ -35,7 +35,7 @@ function ldHotel(origin) {
     logo: `${origin}/favicon.svg`,
     image: [`${origin}/images/hero.jpg`, `${origin}/images/pool.jpg`],
     telephone: '+1-555-012-1962',
-    email: 'stay@wuragrand.example',
+    email: 'stay@wura-y0y5.onrender.com',
     priceRange: '$$$',
     foundingDate: '1962',
     checkinTime: '15:00',
@@ -182,7 +182,7 @@ const STATIC_PAGES = {
     title: 'Contact — Wura Grand Hotel',
     description: 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.',
     image: '/social/contact.png',
-    body: `<h1>Contact</h1><p class="sub">1 Golden Crescent, City Centre · +1 (555) 012-1962 · stay@wuragrand.example</p><p class="sub">The front desk answers around the clock — real people, no menus.</p>`,
+    body: `<h1>Contact</h1><p class="sub">1 Golden Crescent, City Centre · +1 (555) 012-1962 · stay@wura-y0y5.onrender.com</p><p class="sub">The front desk answers around the clock — real people, no menus.</p>`,
   },
 };
 

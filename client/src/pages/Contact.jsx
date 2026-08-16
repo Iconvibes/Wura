@@ -12,7 +12,7 @@ import { usePageMeta } from '../hooks/usePageMeta.jsx';
 const INFO = [
   ['room', 'The address', '1 Golden Crescent, City Centre', 'Two blocks from the river promenade, ten minutes from the airport.'],
   ['phone', 'Front desk', '+1 (555) 012-1962', 'Answering around the clock — real people, no menus.'],
-  ['calendar', 'Reservations', 'stay@wuragrand.example', 'Group bookings, anniversaries and long stays get an answer within the hour.'],
+  ['calendar', 'Reservations', 'stay@wura-y0y5.onrender.com', 'Group bookings, anniversaries and long stays get an answer within the hour.'],
 ];
 
 export default function Contact() {

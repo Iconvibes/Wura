@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api.jsx';
 import { toast } from '../../components/Toast.jsx';
@@ -12,7 +12,11 @@ export default function AdminLogin() {
   const nav = useNavigate();
   const [accessCode, setAccessCode] = useState('');
   const [codeVerified, setCodeVerified] = useState(false);
-  const [username, setUsername] = useState('');
+  // Pre-fill the last username that signed in successfully — the role badge
+  // confirms which account it is as soon as the code gate is passed.
+  const [username, setUsername] = useState(
+    () => (typeof localStorage !== 'undefined' ? localStorage.getItem('wura_last_username') || '' : '')
+  );
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -20,6 +24,12 @@ export default function AdminLogin() {
   const [resetSecret, setResetSecret] = useState('');
   const [newCode, setNewCode] = useState('');
   const [confirmCode, setConfirmCode] = useState('');
+  // Role badge: looked up live (debounced) once the code gate is passed, so
+  // staff confirm which account they're about to sign into.
+  //   'admin' | 'staff' → badge; 'missing' → not-found hint; 'error' → quiet
+  //   (a failed lookup must never claim the account doesn't exist).
+  const [accountRole, setAccountRole] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   const verifyCode = async (e) => {
     e.preventDefault();
@@ -38,6 +48,25 @@ export default function AdminLogin() {
     }
   };
 
+  // Debounced account lookup for the role badge.
+  useEffect(() => {
+    if (!codeVerified) return undefined;
+    const name = username.trim();
+    if (!name) {
+      setAccountRole(null);
+      setRoleLoading(false);
+      return undefined;
+    }
+    setRoleLoading(true);
+    const t = setTimeout(() => {
+      api('/api/admin/account-info', { method: 'POST', body: JSON.stringify({ username: name }) })
+        .then((d) => setAccountRole(d.role === null ? 'missing' : d.role))
+        .catch(() => setAccountRole('error'))
+        .finally(() => setRoleLoading(false));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [username, codeVerified]);
+
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -52,8 +81,11 @@ export default function AdminLogin() {
         }),
       });
       localStorage.setItem('wura_token', data.token);
+      // Remember the username so returning staff don't retype it.
+      localStorage.setItem('wura_last_username', data.user.username);
       toast(`Welcome back, ${data.user.username}`);
-      nav(ADMIN_PATH);
+      // Staff land on the front desk; admins land on the dashboard.
+      nav(data.user?.role === 'staff' ? `${ADMIN_PATH}/front-desk` : ADMIN_PATH);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -84,6 +116,9 @@ export default function AdminLogin() {
         method: 'POST',
         body: JSON.stringify({ reset_secret: resetSecret.trim(), code: newCode.trim() }),
       });
+      // The code changed — forget the stored username so a shared machine
+      // doesn't pre-fill the previous user's name for the next person.
+      localStorage.removeItem('wura_last_username');
       toast('Access code reset — sign in with the new code');
       setRecovering(false);
       setResetSecret('');
@@ -154,6 +189,27 @@ export default function AdminLogin() {
             <div className="form-field mb-2">
               <label htmlFor="al-user">Username</label>
               <input id="al-user" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="admin" autoFocus />
+            </div>
+            {/* Role badge — confirms which account is being signed into. */}
+            <div className="min-h-[24px] mb-2 -mt-1">
+              {roleLoading ? (
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] text-dim">
+                  <span className="w-3 h-3 rounded-full border-2 border-gold-500/25 border-t-gold-500 animate-spin" />
+                  Checking account…
+                </span>
+              ) : accountRole === 'admin' ? (
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-gold-400/15 text-gold-300 ring-1 ring-gold-400/25">
+                  Administrator account
+                </span>
+              ) : accountRole === 'staff' ? (
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold px-2.5 py-1 rounded-full bg-white/5 text-muted ring-1 ring-white/10">
+                  Front desk staff account
+                </span>
+              ) : accountRole === 'missing' && username.trim() ? (
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] text-dim">
+                  No account with that username
+                </span>
+              ) : null}
             </div>
             <div className="form-field mb-2">
               <label htmlFor="al-pass">Password</label>

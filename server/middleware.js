@@ -7,8 +7,8 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'wura-grand-dev-secret-change-me';
 const TOKEN_TTL = '12h';
 
-export function signToken(username) {
-  return jwt.sign({ username }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+export function signToken(username, role) {
+  return jwt.sign({ username, role }, JWT_SECRET, { expiresIn: TOKEN_TTL });
 }
 
 export function requireAuth(req, res, next) {
@@ -21,6 +21,14 @@ export function requireAuth(req, res, next) {
   } catch {
     return res.status(401).json({ error: 'Unauthorized. Please sign in.' });
   }
+}
+
+/** Require one of the given roles on the current session (see req.user.role). */
+export function requireRole(...roles) {
+  return (req, res, next) => {
+    if (req.user && roles.includes(req.user.role)) return next();
+    return res.status(403).json({ error: 'Admin access required for this action.' });
+  };
 }
 
 /* ------------------------ token-bucket rate limiter ----------------------- */

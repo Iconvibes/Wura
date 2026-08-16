@@ -12,6 +12,7 @@ import { handleStripeWebhook, mockCheckoutRouter, isMock } from './stripe.js';
 import { isBot, renderRoute } from './prerender.js';
 import { getKeepAliveInfo } from './keepalive.js';
 import { imgSrcset } from '../shared/roomPhotos.js';
+import { findUpload, streamUpload, UPLOADS_DIR } from './gridfs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -90,9 +91,20 @@ export function createApp() {
   });
 
   /* ------------------- serve admin-uploaded photography -------------------- */
-  // Stored in data/uploads (gitignored) — served before the dist static below
-  // so admin-picked room photos resolve in both dev and production.
-  const UPLOADS_DIR = path.join(__dirname, '..', 'data', 'uploads');
+  // Uploads live in MongoDB GridFS (so they survive Render redeploys), served
+  // here by filename. Anything not found there falls through to the legacy
+  // data/uploads directory on disk, so pre-existing local files keep working.
+  app.use('/images/uploads', async (req, res, next) => {
+    try {
+      const name = decodeURIComponent((req.path || '').replace(/^\//, ''));
+      if (!name) return next();
+      const file = await findUpload(name);
+      if (file) return streamUpload(res, file);
+    } catch {
+      // DB not connected / lookup failed — fall back to disk below.
+    }
+    next();
+  });
   app.use('/images/uploads', express.static(UPLOADS_DIR));
 
   /* ------------------- serve built client (production mode) ----------------- */
