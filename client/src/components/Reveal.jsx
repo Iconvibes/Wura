@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 
 // Adds .visible when scrolled into view (mirrors the vanilla .reveal system).
-export default function Reveal({ children, className = '', delay = 0, as: Tag = 'div' }) {
+// variant: 'up' (default) | 'left' | 'right' | 'zoom' | 'flip' | 'none'
+export default function Reveal({ children, className = '', delay = 0, variant = 'up', as: Tag = 'div' }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -20,8 +21,10 @@ export default function Reveal({ children, className = '', delay = 0, as: Tag = 
     return () => io.disconnect();
   }, []);
 
+  const variantClass = variant && variant !== 'up' ? `reveal-${variant}` : '';
+
   return (
-    <Tag ref={ref} className={`reveal ${className}`} style={{ transitionDelay: delay ? `${delay * 90}ms` : undefined }}>
+    <Tag ref={ref} className={`reveal ${variantClass} ${className}`} style={{ transitionDelay: delay ? `${delay * 90}ms` : undefined }}>
       {children}
     </Tag>
   );

@@ -7,24 +7,30 @@ const STATUSES = ['all', 'confirmed', 'checked_in', 'checked_out', 'cancelled'];
 const STATUS_LABELS = {
   all: 'All', confirmed: 'Confirmed', checked_in: 'In-house', checked_out: 'Checked out', cancelled: 'Cancelled',
 };
+const PAYMENTS = [['all', 'All payments'], ['paid', 'Paid'], ['unpaid', 'Unpaid']];
+const PAYMENT_LABELS = { paid: 'Paid', unpaid: 'Unpaid' };
 
 export default function Bookings() {
   const [filter, setFilter] = useState('all');
+  const [payment, setPayment] = useState('all');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const qs = filter === 'all' ? '' : `?status=${filter}`;
-      const { bookings } = await api(`/api/admin/bookings${qs}`);
+      const params = new URLSearchParams();
+      if (filter !== 'all') params.set('status', filter);
+      if (payment !== 'all') params.set('payment', payment);
+      const qs = params.toString();
+      const { bookings } = await api(`/api/admin/bookings${qs ? `?${qs}` : ''}`);
       setBookings(bookings);
     } catch (e) {
       toast(e.message, false);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, payment]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -67,6 +73,12 @@ export default function Bookings() {
             {STATUS_LABELS[s]}
           </button>
         ))}
+        <span className="w-px bg-white/10 mx-1" />
+        {PAYMENTS.map(([v, label]) => (
+          <button key={v} className={`chip ${payment === v ? 'active' : ''}`} onClick={() => setPayment(v)}>
+            {label}
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -78,12 +90,12 @@ export default function Bookings() {
               <thead>
                 <tr>
                   <th>Ref</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th>
-                  <th>Guests</th><th>Total</th><th>Status</th><th>Actions</th>
+                  <th>Guests</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.length === 0 && (
-                  <tr><td colSpan={9} className="text-center text-dim py-10">No bookings{filter !== 'all' ? ` with status “${STATUS_LABELS[filter]}”` : ''}</td></tr>
+                  <tr><td colSpan={10} className="text-center text-dim py-10">No bookings{filter !== 'all' || payment !== 'all' ? ` matching the selected filters` : ''}</td></tr>
                 )}
                 {bookings.map((b) => (
                   <tr key={b.id}>
@@ -100,6 +112,9 @@ export default function Bookings() {
                     <td className="whitespace-nowrap text-[12.5px]">{fmtDate(b.check_out)}</td>
                     <td>{b.guests}</td>
                     <td className="font-bold">{money(b.total)}</td>
+                    <td>
+                      <span className={`pill ${b.payment_status}`}>{PAYMENT_LABELS[b.payment_status] || b.payment_status}</span>
+                    </td>
                     <td><span className={`pill ${b.status}`}>{b.status.replace('_', ' ')}</span></td>
                     <td>
                       <div className="flex">

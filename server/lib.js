@@ -80,6 +80,8 @@ export function bookingToJson(b) {
     guests: o.guests,
     total: o.total,
     status: o.status,
+    payment_status: o.payment_status || 'unpaid',
+    paid_at: o.paid_at || null,
     notes: o.notes || '',
     created_at: o.created_at || o.createdAt,
   };

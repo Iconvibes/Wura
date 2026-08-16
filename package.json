@@ -10,7 +10,10 @@
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client",
     "build": "npm run build --prefix client",
-    "start": "npm --prefix server start"
+    "start": "npm --prefix server start",
+    "test": "npm test --prefix server && npm test --prefix client",
+    "test:server": "npm test --prefix server",
+    "test:client": "npm test --prefix client"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

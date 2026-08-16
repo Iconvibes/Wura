@@ -1,34 +1,55 @@
-import { useEffect } from 'react';
-import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
+import { ADMIN_PATH } from '../../lib/adminPath.js';
 
 const NAV = [
-  ['/admin', 'overview', 'Overview', 'chart'],
-  ['/admin/front-desk', 'front-desk', 'Front Desk', 'bell'],
-  ['/admin/bookings', 'bookings', 'Bookings', 'bookings'],
-  ['/admin/rooms', 'rooms', 'Rooms & Rates', 'room'],
+  [ADMIN_PATH, 'overview', 'Overview', 'chart'],
+  [`${ADMIN_PATH}/front-desk`, 'front-desk', 'Front Desk', 'bell'],
+  [`${ADMIN_PATH}/bookings`, 'bookings', 'Bookings', 'bookings'],
+  [`${ADMIN_PATH}/rooms`, 'rooms', 'Rooms & Rates', 'room'],
+  [`${ADMIN_PATH}/inbox`, 'inbox', 'Inbox', 'mail'],
 ];
 
 export default function AdminLayout() {
   const nav = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem('wura_token');
+  const [unread, setUnread] = useState(0);
 
   // Verify the stored token on mount. api() already redirects to /admin/login
-  // on a 401, so the catch here only handles non-auth failures quietly.
+  // on a 401, so the catch here only handles non-auth failures quietly. The
+  // unread count refreshes on every navigation so the Inbox badge stays in
+  // sync after messages are read or deleted inside the panel.
   useEffect(() => {
     if (!token) return;
     api('/api/admin/me').catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!token) return <Navigate to="/admin/login" replace />;
+  useEffect(() => {
+    if (!token) return;
+    const refresh = () => {
+      api('/api/admin/messages')
+        .then((d) => setUnread(d.unread ?? 0))
+        .catch(() => {});
+    };
+    refresh();
+    // Inbox dispatches this after read/unread/delete mutations so the badge
+    // stays live even without navigating.
+    window.addEventListener('wura-inbox-changed', refresh);
+    return () => window.removeEventListener('wura-inbox-changed', refresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, location.pathname]);
+
+  if (!token) return <Navigate to={`${ADMIN_PATH}/login`} replace />;
 
   const logout = () => {
     localStorage.removeItem('wura_token');
     toast('Signed out');
-    nav('/admin/login');
+    nav(`${ADMIN_PATH}/login`);
   };
 
   return (
@@ -45,10 +66,15 @@ export default function AdminLayout() {
 
         <nav className="space-y-1">
           {NAV.map(([path, key, label, icon]) => (
-            <NavLink key={path} to={path} end={path === '/admin'}
+            <NavLink key={path} to={path} end={path === ADMIN_PATH}
               className={({ isActive }) => `side-item ${isActive ? 'active' : ''}`}>
               {Icon({ name: icon, size: 18 })}
               {label}
+              {key === 'inbox' && unread > 0 && (
+                <span className="ml-auto text-[10px] font-bold text-navy-950 bg-gold-400 rounded-full min-w-[18px] h-[18px] px-1 grid place-items-center">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -76,10 +102,15 @@ export default function AdminLayout() {
         </div>
         <nav className="flex gap-1.5 overflow-x-auto px-3 pb-3">
           {NAV.map(([path, key, label, icon]) => (
-            <NavLink key={path} to={path} end={path === '/admin'}
+            <NavLink key={path} to={path} end={path === ADMIN_PATH}
               className={({ isActive }) => `side-item !py-2 !px-3.5 whitespace-nowrap ${isActive ? 'active' : ''}`}>
               {Icon({ name: icon, size: 16 })}
               {label}
+              {key === 'inbox' && unread > 0 && (
+                <span className="text-[10px] font-bold text-navy-950 bg-gold-400 rounded-full min-w-[18px] h-[18px] px-1 grid place-items-center">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

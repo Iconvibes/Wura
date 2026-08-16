@@ -6,20 +6,72 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Room from '../models/Room.js';
 import Booking from '../models/Booking.js';
+import Message from '../models/Message.js';
 import { roomToJson, bookingToJson, today, addDays } from '../lib.js';
 import { requireAuth, signToken } from '../middleware.js';
 import { roomArt } from '../roomArt.js';
 
 const router = Router();
 
+// Staff access code — required on login so the panel is staff-only even if the
+// URL leaks. Override with ADMIN_ACCESS_CODE; the default is the local-dev code.
+const ACCESS_CODE = process.env.ADMIN_ACCESS_CODE || 'WURA-1962';
+
+// Login rate limiter: 10 attempts / 15 min per IP, so the short access code
+// can't be brute-forced.
+const LOGIN_LIMIT = 10;
+const LOGIN_WINDOW = 15 * 60_000;
+const loginAttempts = new Map();
+
+function loginRateLimit(req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const row = loginAttempts.get(ip);
+  const n = row && now - row.t < LOGIN_WINDOW ? row.n + 1 : 1;
+  loginAttempts.set(ip, { n, t: now });
+  if (n > LOGIN_LIMIT) {
+    return res.status(429).json({ error: 'Too many login attempts. Try again in a few minutes.' });
+  }
+  next();
+}
+
+// Drop stale buckets periodically.
+setInterval(() => {
+  const cutoff = Date.now() - LOGIN_WINDOW;
+  for (const [ip, row] of loginAttempts) {
+    if (row.t < cutoff) loginAttempts.delete(ip);
+  }
+}, LOGIN_WINDOW);
+
+// Test hook: clear login-attempt buckets for deterministic rate-limit tests.
+export function __resetLoginLimits() {
+  loginAttempts.clear();
+}
+
 // Guard helper: reject malformed ObjectIds with a 404 (not a Mongoose CastError 500).
 function validId(id) {
   return mongoose.isValidObjectId(id);
 }
 
+/* -------------------------- POST /verify-code ------------------------------ */
+// Lightweight gate used by the login page's first step: the credential form is
+// only revealed after the staff code is accepted. Same rate limiter as login so
+// the short code can't be brute-forced. The code is still re-checked on /login
+// (defense in depth) — the real credential check never skips it.
+router.post('/verify-code', loginRateLimit, (req, res) => {
+  const { access_code } = req.body || {};
+  if (String(access_code || '') !== ACCESS_CODE) {
+    return res.status(401).json({ error: 'Invalid access code.' });
+  }
+  res.status(204).end();
+});
+
 /* ------------------------------ POST /login ------------------------------- */
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
+router.post('/login', loginRateLimit, async (req, res) => {
+  const { username, password, access_code } = req.body || {};
+  if (String(access_code || '') !== ACCESS_CODE) {
+    return res.status(401).json({ error: 'Invalid access code.' });
+  }
   const user = await User.findOne({ username: String(username || '').trim() }).lean();
   if (!user || !(await bcrypt.compare(String(password || ''), user.password_hash))) {
     return res.status(401).json({ error: 'Invalid username or password.' });
@@ -92,6 +144,26 @@ router.get('/overview', async (req, res) => {
   for (const s of ['confirmed', 'checked_in', 'checked_out', 'cancelled']) byStatus[s] = 0;
   counts.forEach((c) => { byStatus[c._id] = c.n; });
 
+  // Room-type mix (denormalised via lookup) + payment split + in-house count.
+  const byType = {};
+  const typeRows = await Booking.aggregate([
+    { $lookup: { from: 'rooms', localField: 'room', foreignField: '_id', as: 'r' } },
+    { $unwind: { path: '$r', preserveNullAndEmptyArrays: true } },
+    { $group: { _id: '$r.type', n: { $sum: 1 } } },
+  ]);
+  typeRows.forEach((t) => { if (t._id) byType[t._id] = t.n; });
+
+  const byPayment = { paid: 0, unpaid: 0 };
+  const payRows = await Booking.aggregate([{ $group: { _id: '$payment_status', n: { $sum: 1 } } }]);
+  payRows.forEach((p) => { if (p._id) byPayment[p._id] = p.n; });
+
+  // Per-day revenue outlook for the next 30 days (aligned with occupancy):
+  // totals of non-cancelled bookings checking in on each day.
+  const revenueSeries = occ.map((o) => ({
+    day: o.day,
+    amount: revenueRows.filter((b) => b.check_in === o.day).reduce((s, b) => s + b.total, 0),
+  }));
+
   const recent = await Booking.find()
     .populate('room', 'name type')
     .sort({ created_at: -1 })
@@ -102,7 +174,8 @@ router.get('/overview', async (req, res) => {
     stats: {
       totalRooms, activeRooms, arrivals, departures,
       occupancy30: avgOcc, occupancy: occ,
-      revenueMonth, revenueTotal, byStatus,
+      revenueMonth, revenueTotal, revenueSeries, byStatus, byType, byPayment,
+      inHouse: byStatus.checked_in || 0,
       totalBookings: Object.values(byStatus).reduce((a, b) => a + b, 0),
     },
     recent: recent.map((b) => bookingToJson(b)),
@@ -112,7 +185,10 @@ router.get('/overview', async (req, res) => {
 /* ------------------------------ GET /bookings ----------------------------- */
 router.get('/bookings', async (req, res) => {
   const status = req.query.status;
-  const q = status ? { status } : {};
+  const payment = req.query.payment;
+  const q = {};
+  if (status) q.status = status;
+  if (payment === 'paid' || payment === 'unpaid') q.payment_status = payment;
   const rows = await Booking.find(q)
     .populate('room', 'name type')
     .sort({ check_in: -1, created_at: -1 })
@@ -139,6 +215,51 @@ router.delete('/bookings/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Booking not found.' });
   const result = await Booking.findByIdAndDelete(req.params.id);
   if (!result) return res.status(404).json({ error: 'Booking not found.' });
+  res.json({ ok: true });
+});
+
+/* ------------------------------ GET /messages ----------------------------- */
+router.get('/messages', async (req, res) => {
+  const messages = await Message.find()
+    .sort({ created_at: -1 })
+    .select('-__v')
+    .lean();
+  res.json({
+    messages: messages.map((m) => ({
+      ...m,
+      id: String(m._id),
+      read: Boolean(m.read),
+      sent_at: m.sent_at ? m.sent_at.toISOString() : null,
+      created_at: m.created_at.toISOString(),
+    })),
+    unread: messages.filter((m) => !m.read).length,
+  });
+});
+
+/* ------------------------- POST /messages/read-all ------------------------- */
+// Defined before the /:id routes so 'read-all' is never captured as an id.
+router.post('/messages/read-all', async (req, res) => {
+  await Message.updateMany({ read: false }, { $set: { read: true } });
+  res.json({ ok: true });
+});
+
+/* -------------------------- PATCH /messages/:id ---------------------------- */
+// Toggle read state: { read: true | false }. Returns the updated row.
+router.patch('/messages/:id', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(404).json({ error: 'Message not found.' });
+  if (typeof req.body?.read !== 'boolean') {
+    return res.status(400).json({ error: 'Provide read: true or false.' });
+  }
+  const message = await Message.findByIdAndUpdate(req.params.id, { read: req.body.read }, { new: true }).lean();
+  if (!message) return res.status(404).json({ error: 'Message not found.' });
+  res.json({ message: { ...message, id: String(message._id), read: Boolean(message.read) } });
+});
+
+/* -------------------------- DELETE /messages/:id --------------------------- */
+router.delete('/messages/:id', async (req, res) => {
+  if (!validId(req.params.id)) return res.status(404).json({ error: 'Message not found.' });
+  const result = await Message.findByIdAndDelete(req.params.id);
+  if (!result) return res.status(404).json({ error: 'Message not found.' });
   res.json({ ok: true });
 });
 

@@ -1,4 +1,5 @@
 // Shared API helper for the React client.
+import { ADMIN_PATH } from './lib/adminPath.js';
 
 export async function api(path, opts = {}) {
   const token = localStorage.getItem('wura_token') || '';
@@ -11,8 +12,8 @@ export async function api(path, opts = {}) {
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && path.startsWith('/api/admin')) {
     localStorage.removeItem('wura_token');
-    if (window.location.pathname.startsWith('/admin') && !window.location.pathname.endsWith('/login')) {
-      window.location.href = '/admin/login';
+    if (window.location.pathname.startsWith(ADMIN_PATH) && !window.location.pathname.endsWith('/login')) {
+      window.location.href = `${ADMIN_PATH}/login`;
     }
   }
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);

@@ -60,3 +60,8 @@ setInterval(() => {
     if (b.last < cutoff) buckets.delete(ip);
   }
 }, 300_000);
+
+// Test hook: clear all buckets so rate-limit tests start from a clean slate.
+export function __resetRateLimits() {
+  buckets.clear();
+}

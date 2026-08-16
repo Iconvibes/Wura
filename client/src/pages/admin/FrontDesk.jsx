@@ -39,7 +39,12 @@ function GuestCard({ b, type, onAction }) {
               <div className="text-[12px] text-dim">{b.guest_email}</div>
             </div>
           </div>
-          <span className={`pill ${b.status}`}>{statusLabel}</span>
+          <div className="flex flex-col items-end gap-1.5">
+            <span className={`pill ${b.status}`}>{statusLabel}</span>
+            {b.payment_status !== 'paid' && (
+              <span className="pill unpaid" title="No payment received">Unpaid</span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[12.5px] text-dim">

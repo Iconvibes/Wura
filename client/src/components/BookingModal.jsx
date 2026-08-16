@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { api, money, fmtDate, addDays, nightsBetween, todayISO } from '../api.js';
 import { I } from './Icons.jsx';
 import { toast } from './Toast.jsx';
+import { roomPhoto } from '../lib/photos.js';
 
 const STEPS = [1, 2, 3];
 
-export default function BookingModal({ open, onClose, initialRoom, dates, setDates, guests, setGuests, onBooked }) {
+export default function BookingModal({ open, onClose, initialRoom, dates, setDates, guests, setGuests }) {
   const [step, setStep] = useState(1);
   const [room, setRoom] = useState(initialRoom);
   const [available, setAvailable] = useState([]);
@@ -14,18 +15,17 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
   const [form, setForm] = useState({ name: '', email: '', phone: '', notes: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState(null);
 
   // Reset state each time the modal opens with a new room.
   useEffect(() => {
     if (open) {
       setStep(initialRoom ? 2 : 1);
       setRoom(initialRoom || null);
-      setResult(null);
       setAvailable([]);
       setFetchedFor(null);
       setForm({ name: '', email: '', phone: '', notes: '' });
       setErrors({});
+      setSubmitting(false);
     }
   }, [open, initialRoom]);
 
@@ -65,7 +65,10 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
 
     setSubmitting(true);
     try {
-      const { booking } = await api('/api/bookings', {
+      // Creating the booking returns a checkout_url (Stripe, or the sandbox
+      // mock page in dev). Hand the guest off to the hosted payment page —
+      // they return to /booking/success once paid.
+      const { checkout_url } = await api('/api/bookings', {
         method: 'POST',
         body: JSON.stringify({
           room_id: room.id,
@@ -78,12 +81,9 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
           notes: form.notes,
         }),
       });
-      setResult(booking);
-      setStep(4);
-      onBooked();
+      window.location.href = checkout_url;
     } catch (e) {
       toast(e.message, false);
-    } finally {
       setSubmitting(false);
     }
   };
@@ -98,18 +98,14 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
     <div className={`modal-backdrop ${open ? 'open' : ''}`} onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <span className="font-serif text-[19px] text-cream">
-            {step === 4 ? 'Booking confirmed' : 'Reserve your stay'}
-          </span>
+          <span className="font-serif text-[19px] text-cream">Reserve your stay</span>
           <button className="modal-close" onClick={onClose} aria-label="Close">{I.close({ width: 16, height: 16 })}</button>
         </div>
 
         <div className="p-6">
-          {step < 4 && (
-            <div className="steps">
-              {STEPS.map((s) => <span key={s} className={`step-dot ${s <= step ? 'done' : ''}`} />)}
-            </div>
-          )}
+          <div className="steps">
+            {STEPS.map((s) => <span key={s} className={`step-dot ${s <= step ? 'done' : ''}`} />)}
+          </div>
 
           {/* STEP 1 — dates */}
           {step === 1 && (
@@ -164,7 +160,7 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                   className={`bp-row ${room?.id === r.id ? 'selected' : ''}`}
                   onClick={() => setRoom(r)}
                 >
-                  <img src={r.art} alt={r.name} />
+                  <img src={roomPhoto(r.type)} alt={r.name} />
                   <div className="min-w-0">
                     <div className="bp-name">{r.name}</div>
                     <div className="bp-meta">{r.type} · up to {r.capacity} guests · {r.size_sqm} m²</div>
@@ -175,7 +171,7 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
             </>
           )}
 
-          {/* STEP 3 — guest details */}
+          {/* STEP 3 — guest details + payment */}
           {step === 3 && room && (
             <>
               <h4 className="font-serif text-[20px] text-cream mb-4">Your details</h4>
@@ -205,26 +201,11 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                 <div className="row"><span>Guests</span><b>{guests}</b></div>
                 <div className="row total"><span>Total</span><b>{money(room.price * nights)}</b></div>
               </div>
-            </>
-          )}
-
-          {/* STEP 4 — success */}
-          {step === 4 && result && (
-            <div className="text-center py-2">
-              <div className="success-ring">{I.check({ width: 26, height: 26 })}</div>
-              <h4 className="font-serif text-[24px] text-cream mb-2">You're booked, {result.guest_name.split(' ')[0]}!</h4>
-              <p className="text-[14px] text-muted mb-1">
-                A confirmation has been sent to <b className="text-cream">{result.guest_email}</b>
+              <p className="mt-3 text-[11.5px] text-dim flex items-start gap-1.5">
+                {I.shield({ width: 13, height: 13 })}
+                <span>You'll pay securely on the next screen via card. No charge is made until you confirm there.</span>
               </p>
-              <div className="ref-code">{result.ref}</div>
-              <div className="summary text-left">
-                <div className="row"><span>Room</span><b>{result.room_name} {result.room_type ? `· ${result.room_type}` : ''}</b></div>
-                <div className="row"><span>Dates</span><b>{fmtDate(result.check_in)} → {fmtDate(result.check_out)}</b></div>
-                <div className="row"><span>Guests</span><b>{result.guests}</b></div>
-                <div className="row total"><span>Total</span><b>{money(result.total)}</b></div>
-              </div>
-              <p className="mt-4 text-[12px] text-dim">Keep your reference — you'll need it at check-in. Free cancellation up to 48h before arrival.</p>
-            </div>
+            </>
           )}
         </div>
 
@@ -244,14 +225,15 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
           )}
           {step === 3 && (
             <>
-              <button className="btn btn-ghost" onClick={() => setStep(2)}>Back</button>
+              <button className="btn btn-ghost" onClick={() => setStep(2)} disabled={submitting}>Back</button>
               <button className="btn btn-gold" disabled={submitting} onClick={validateAndSubmit}>
-                {submitting ? 'Confirming…' : 'Confirm booking'}
+                {submitting ? (
+                  <span className="inline-flex items-center gap-2"><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2, margin: 0 }} /> Redirecting to secure checkout…</span>
+                ) : (
+                  <>{I.shield({ width: 14, height: 14 })} Continue to payment</>
+                )}
               </button>
             </>
-          )}
-          {step === 4 && (
-            <button className="btn btn-gold btn-block" onClick={onClose}>Done</button>
           )}
         </div>
       </div>

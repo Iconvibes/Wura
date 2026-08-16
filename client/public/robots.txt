@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# The admin panel lives behind a non-obvious path and is code-gated —
+# keep crawlers away from it explicitly.
+Disallow: /admin
+
+Sitemap: https://wuragrand.example/sitemap.xml

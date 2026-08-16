@@ -104,6 +104,9 @@ input[type="date"] { color-scheme: dark; }
 .pill.checked_in { color: var(--color-green-soft); border-color: rgba(74, 222, 128, 0.35); background: rgba(74, 222, 128, 0.08); }
 .pill.checked_out { color: var(--color-gold-400); border-color: rgba(212, 175, 55, 0.35); background: rgba(212, 175, 55, 0.08); }
 .pill.cancelled { color: var(--color-red-soft); border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.08); }
+.pill.paid { color: var(--color-green-soft); border-color: rgba(74, 222, 128, 0.35); background: rgba(74, 222, 128, 0.08); }
+.pill.unpaid { color: #fbbf24; border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08); }
+.pill.refunded { color: #c4b5fd; border-color: rgba(196, 181, 253, 0.35); background: rgba(196, 181, 253, 0.08); }
 
 /* --------------------------------- fields --------------------------------- */
 .field, .form-field { display: flex; flex-direction: column; gap: 6px; }
@@ -132,6 +135,14 @@ input[type="date"] { color-scheme: dark; }
 /* -------------------------------- reveal ---------------------------------- */
 .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.7s var(--ease-soft), transform 0.7s var(--ease-soft); }
 .reveal.visible { opacity: 1; transform: none; }
+
+/* Directional reveal variants — each page gets its own signature motion.
+   .visible always resets to identity, so variants only set the hidden pose. */
+.reveal-left { transform: translateX(-46px); }
+.reveal-right { transform: translateX(46px); }
+.reveal-zoom { transform: scale(0.9); }
+.reveal-flip { transform: perspective(900px) rotateX(12deg); transform-origin: 50% 100%; }
+.reveal-none { transform: none; }
 
 /* --------------------------------- toast ---------------------------------- */
 .toast {
@@ -238,6 +249,52 @@ input[type="date"] { color-scheme: dark; }
   color: #fff; background: rgba(6, 10, 20, 0.7); padding: 5px 10px; border-radius: 7px; border: 1px solid rgba(212, 175, 55, 0.35);
 }
 
+/* ---------------------------- gallery (masonry) ---------------------------- */
+.gal-card {
+  position: relative; border-radius: 14px; overflow: hidden; cursor: zoom-in;
+  border: 1px solid rgba(148, 163, 184, 0.14); background: var(--color-navy-800);
+  transition: border-color 0.3s, transform 0.3s var(--ease-soft), box-shadow 0.3s;
+}
+.gal-card:hover { border-color: rgba(212, 175, 55, 0.45); transform: translateY(-3px); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45); }
+.gal-card img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.01); transition: transform 0.8s var(--ease-soft); }
+.gal-card:hover img { transform: scale(1.08); }
+.gal-overlay {
+  position: absolute; inset: 0; opacity: 0; transition: opacity 0.35s;
+  background: linear-gradient(180deg, rgba(6, 10, 20, 0) 40%, rgba(6, 10, 20, 0.82));
+}
+.gal-card:hover .gal-overlay { opacity: 1; }
+.gal-cat {
+  position: absolute; top: 10px; left: 10px;
+  font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;
+  color: var(--color-gold-300); background: rgba(6, 10, 20, 0.72);
+  border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 6px; padding: 4px 8px;
+}
+.gal-cap {
+  position: absolute; left: 12px; right: 12px; bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  opacity: 0; transform: translateY(10px); transition: opacity 0.35s, transform 0.35s var(--ease-soft);
+}
+.gal-card:hover .gal-cap { opacity: 1; transform: none; }
+.gal-cap-title { font-size: 13.5px; font-weight: 700; color: var(--color-cream); }
+.gal-cap-zoom {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--color-gold-300);
+}
+.lb-count {
+  position: absolute; top: 24px; left: 24px;
+  font-size: 12px; letter-spacing: 2px; color: var(--color-muted);
+  background: rgba(6, 10, 20, 0.7); border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 6px 12px; border-radius: 8px;
+}
+@media (hover: none) {
+  .gal-card .gal-overlay { opacity: 1; }
+  .gal-card .gal-cap { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gal-card { transition: none; }
+  .gal-card img, .gal-card .gal-cap, .gal-card .gal-overlay { transition: none; transform: none; }
+}
+
 /* ----------------------------- occupancy chart ----------------------------- */
 .occ-bar {
   flex: 1; min-width: 0; border-radius: 4px 4px 0 0;
@@ -246,6 +303,38 @@ input[type="date"] { color-scheme: dark; }
 }
 .occ-bar:hover { opacity: 1; }
 .occ-bar.hot { background: linear-gradient(180deg, #f87171, #991b1b); }
+
+/* ------------------------------- admin charts ------------------------------ */
+/* Area line draws itself in, fill fades up behind it. */
+.area-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: areaDraw 1.4s var(--ease-soft) forwards; }
+.area-fill { opacity: 0; animation: areaFill 1.2s var(--ease-soft) 0.3s forwards; }
+@keyframes areaDraw { to { stroke-dashoffset: 0; } }
+@keyframes areaFill { to { opacity: 1; } }
+
+/* Donut segments sweep in. */
+.donut-seg { stroke-dasharray: var(--len) var(--circ); animation: donutIn 0.9s var(--ease-soft) both; }
+@keyframes donutIn { from { stroke-dasharray: 0 var(--circ); } }
+
+/* Status bars grow from the left. */
+.bar-grow { width: 0; animation: barGrow 0.9s var(--ease-soft) 0.15s forwards; }
+@keyframes barGrow { to { width: var(--barw); } }
+
+/* Area-chart hover tooltip. */
+.chart-tip {
+  position: absolute; top: 2px; transform: translateX(-50%); pointer-events: none;
+  background: var(--color-navy-800); border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 9px; padding: 7px 11px; text-align: center; white-space: nowrap;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); z-index: 5;
+}
+.chart-tip-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--color-muted); }
+.chart-tip-value { font-size: 13.5px; font-weight: 700; color: var(--color-gold-300); margin-top: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .area-line, .area-fill, .donut-seg, .bar-grow { animation: none; }
+  .area-line { stroke-dashoffset: 0; }
+  .area-fill { opacity: 1; }
+  .bar-grow { width: var(--barw); }
+}
 
 /* ------------------------------ stat cards -------------------------------- */
 .stat-card {
@@ -309,3 +398,125 @@ input[type="date"] { color-scheme: dark; }
 /* ------------------------------- animations -------------------------------- */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .fade-up { animation: fadeUp 0.6s var(--ease-soft) both; }
+
+/* Route-change transition: every page fades in and rises as it mounts. */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.995); filter: blur(5px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+.page-enter { animation: pageIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; will-change: opacity, transform, filter; }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+}
+
+/* Native View Transitions crossfade (Chromium 111+, Safari 18+, Firefox 140+).
+   Navigations that opt in via the `viewTransition` prop get a true out-and-in
+   crossfade with a whisper of brand-coloured light — layered over, never
+   instead of, the .page-enter fallback below. Under reduced motion the browser
+   itself skips the animation entirely. */
+@keyframes vt-gold-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+::view-transition-old(root) {
+  animation: 0.22s ease-out both vt-old-fade;
+}
+::view-transition-new(root) {
+  animation: 0.34s cubic-bezier(0.22, 1, 0.36, 1) both vt-gold-rise;
+}
+@keyframes vt-old-fade {
+  to { opacity: 0.25; }
+}
+/* A faint gold veil during the crossfade, echoing the house palette. */
+::view-transition-group(root) {
+  background: #0b0f19;
+}
+::view-transition-image-pair(root) {
+  mix-blend-mode: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+@keyframes heroRise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+.hero-rise { animation: heroRise 0.9s var(--ease-soft) both; }
+
+/* Icon chip pops once its Reveal parent becomes visible (Experience page). */
+.pop-chip { opacity: 0; transform: scale(0.6); transition: opacity 0.4s var(--ease-soft), transform 0.4s var(--ease-soft); transition-delay: 0.35s; }
+.reveal.visible .pop-chip { opacity: 1; transform: scale(1); }
+
+/* ----------------------------- page lightbox ------------------------------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
+  background: rgba(2, 5, 12, 0.92); backdrop-filter: blur(8px); padding: 24px;
+  animation: lbFade 0.3s var(--ease-soft);
+}
+.lightbox img {
+  max-width: 92vw; max-height: 80vh; border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.35); box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8);
+  animation: lbZoom 0.4s var(--ease-soft);
+}
+.lightbox .cap {
+  position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--color-cream);
+  background: rgba(6, 10, 20, 0.75); padding: 7px 14px; border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+.lb-btn {
+  position: absolute; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--color-cream); cursor: pointer; transition: all 0.2s; z-index: 2;
+}
+.lb-btn:hover { background: rgba(212, 175, 55, 0.2); color: var(--color-gold-300); }
+.lb-close { top: 22px; right: 22px; }
+.lb-prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 18px; top: 50%; transform: translateY(-50%); }
+@keyframes lbFade { from { opacity: 0; } }
+@keyframes lbZoom { from { opacity: 0; transform: scale(0.94); } }
+
+/* -------------------------- room-detail crossfade -------------------------- */
+.xfade-stage { position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 18px; border: 1px solid rgba(212, 175, 55, 0.25); }
+.xfade-img { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 0.8s var(--ease-soft), transform 0.8s var(--ease-soft); }
+.xfade-img.active { opacity: 1; transform: scale(1); }
+.xfade-img img { width: 100%; height: 100%; object-fit: cover; }
+.xfade-thumbs { display: flex; gap: 10px; margin-top: 12px; }
+.xfade-thumb {
+  width: 84px; height: 56px; border-radius: 10px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; opacity: 0.6; transition: all 0.25s; padding: 0;
+}
+.xfade-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.xfade-thumb:hover { opacity: 1; }
+.xfade-thumb.active { border-color: var(--color-gold-500); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise { animation: none; }
+  .lightbox, .lightbox img { animation: none; }
+  .xfade-img { transition: none; transform: none; }
+}
+
+/* --------------------------- photo & scroll fx ----------------------------- */
+@keyframes kenburns {
+  from { transform: scale(1.02); }
+  to   { transform: scale(1.14); }
+}
+.kenburns { animation: kenburns 24s ease-in-out infinite alternate; will-change: transform; }
+
+/* Parallax layers: the moving element must be taller than its window. */
+.parallax-layer { will-change: transform; }
+.parallax-img { position: absolute; inset: 0; overflow: hidden; }
+.parallax-img-inner { position: absolute; inset: -14% 0; will-change: transform; }
+.parallax-img-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Room-card photography zooms out as the card scrolls into view. */
+.room-art { transform: scale(1.16); transition: transform 1.3s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+.reveal.visible .room-art { transform: scale(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .kenburns { animation: none; }
+  .room-art { transform: none; transition: none; }
+  .parallax-layer, .parallax-img-inner { will-change: auto; }
+}

@@ -24,6 +24,8 @@ export const I = {
   plate: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M5 12.5h14M5 12.5c-1.5 0-2.5-1-2.5-2.2 0-.8.6-1.8 1.4-2.2.3-3.4 4.6-5 8.1-5s7.8 1.6 8.1 5c.8.4 1.4 1.4 1.4 2.2 0 1.2-1 2.2-2.5 2.2M5 12.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5.5M9 20v-4.5M15 20v-4.5" /></svg>,
   chart: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M3 3v18h18" /><path d="m7 15 4-6 4 3 5-7" /></svg>,
   bell: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M5 17h14M5 17 3 13h18l-2 4M7 13l-1-4h4l-1 4" /></svg>,
+  mail: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>,
+  inbox: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z" /></svg>,
   occupancy: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6" /><path d="M3 18h18M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4" /></svg>,
   revenue: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>,
   bookings: (s = {}) => <svg viewBox="0 0 24 24" {...base} {...s}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>,

@@ -19,6 +19,14 @@ const bookingSchema = new mongoose.Schema(
       default: 'confirmed',
       index: true,
     },
+    payment_status: {
+      type: String,
+      enum: ['unpaid', 'paid', 'refunded'],
+      default: 'unpaid',
+      index: true,
+    },
+    stripe_session_id: { type: String, default: null, index: true },
+    paid_at: { type: Date, default: null },
     notes: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
