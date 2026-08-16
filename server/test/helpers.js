@@ -57,9 +57,15 @@ export async function login(password = 'admin123', accessCode = 'WURA-1962') {
   return res.body.token;
 }
 
+// Each test DB is wiped between tests, so a global counter never collides.
+let testRoomSeq = 9000;
+
 export function makeRoom(overrides = {}) {
-  return Room.create({
+  testRoomSeq += 1;
+  const doc = {
     name: 'Test Room',
+    room_number: String(testRoomSeq),
+    floor: Math.floor(testRoomSeq / 100),
     type: 'Deluxe',
     description: 'A comfortable test room.',
     price: 120,
@@ -68,7 +74,12 @@ export function makeRoom(overrides = {}) {
     amenities: ['Free WiFi', 'Mini bar'],
     art: 'data:image/svg+xml;base64,PHN2Zy8+',
     ...overrides,
-  });
+  };
+  // Keep floor consistent when a test pins a specific room_number.
+  if (doc.floor == null || (overrides.room_number && overrides.floor == null)) {
+    doc.floor = /^\d{3,4}$/.test(doc.room_number) ? Math.floor(Number(doc.room_number) / 100) : 0;
+  }
+  return Room.create(doc);
 }
 
 /** A valid booking request body for a room, 2 nights from today by default. */

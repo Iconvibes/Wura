@@ -1,5 +1,5 @@
 import { I } from './Icons.jsx';
-import { addDays, todayISO } from '../api.js';
+import { addDays, todayISO } from '../api.jsx';
 
 export default function BookingWidget({ dates, setDates, guests, setGuests, onSubmit }) {
   const today = todayISO();
@@ -11,10 +11,11 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
     >
       <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-3">
         <div className="field">
-          <label>Check-in</label>
+          <label htmlFor="bw-checkin">Check-in</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold-500">{I.calendar({ width: 16, height: 16 })}</span>
             <input
+              id="bw-checkin"
               type="date"
               value={dates.checkIn}
               min={today}
@@ -29,10 +30,11 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
           </div>
         </div>
         <div className="field">
-          <label>Check-out</label>
+          <label htmlFor="bw-checkout">Check-out</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold-500">{I.calendar({ width: 16, height: 16 })}</span>
             <input
+              id="bw-checkout"
               type="date"
               value={dates.checkOut}
               min={addDays(dates.checkIn, 1)}
@@ -42,10 +44,10 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
           </div>
         </div>
         <div className="field">
-          <label>Guests</label>
+          <label htmlFor="bw-guests">Guests</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold-500">{I.users({ width: 16, height: 16 })}</span>
-            <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="pl-10">
+            <select id="bw-guests" value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="pl-10">
               {[1, 2, 3, 4, 5, 6].map((g) => (
                 <option key={g} value={g}>{g} {g === 1 ? 'guest' : 'guests'}</option>
               ))}

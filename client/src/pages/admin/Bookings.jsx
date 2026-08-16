@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, money, fmtDate } from '../../api.js';
+import { api, money, fmtDate } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
 
@@ -85,7 +85,7 @@ export default function Bookings() {
         <div className="py-24"><div className="spinner" /></div>
       ) : (
         <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Bookings table (scroll horizontally with Shift + mouse wheel or arrow keys)">
             <table className="data-table">
               <thead>
                 <tr>
@@ -105,8 +105,8 @@ export default function Bookings() {
                       <div className="text-[12px] text-dim">{b.guest_email}</div>
                     </td>
                     <td>
-                      <div>{b.room_name}</div>
-                      <div className="text-[12px] text-dim">{b.room_type}</div>
+                      <div className="font-bold text-cream">{b.room_number ? `Room ${b.room_number}` : b.room_name}</div>
+                      <div className="text-[12px] text-dim">{b.room_number ? `${b.room_name} · ${b.room_type}` : b.room_type}</div>
                     </td>
                     <td className="whitespace-nowrap text-[12.5px]">{fmtDate(b.check_in)}</td>
                     <td className="whitespace-nowrap text-[12.5px]">{fmtDate(b.check_out)}</td>

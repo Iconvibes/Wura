@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '../../api.js';
+import { api } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
 
@@ -132,9 +132,10 @@ export default function Inbox() {
           <p className="text-[13.5px] text-muted">No enquiries yet — messages sent through the contact form will land here.</p>
         </div>
       ) : (
-        <div className="card overflow-hidden md:grid md:grid-cols-[360px_1fr] min-h-[560px]">
-          {/* list */}
-          <div className={`${viewing ? 'hidden md:block' : 'block'} border-r border-white/5 max-h-[70vh] md:max-h-[70vh] overflow-y-auto`}>
+        <div className="card overflow-hidden md:grid md:grid-cols-[360px_1fr] md:min-h-[560px]">
+          {/* list — natural height + page scroll on phones; fixed-height pane
+              with its own scroll once the two-column layout kicks in at md */}
+          <div className={`${viewing ? 'hidden md:block' : 'block'} border-r border-white/5 md:max-h-[70vh] overflow-y-auto`}>
             {messages.map((m) => (
               <MessageRow key={m.id} m={m} active={selectedId === m.id} onClick={() => openMessage(m)} />
             ))}
@@ -180,8 +181,8 @@ export default function Inbox() {
                       {selected.read ? 'Read' : 'Unread'}
                     </span>
                   </div>
-                  <h2 className="font-serif text-[20px] text-gold-300 mt-2">{selected.subject}</h2>
-                  <p className="text-[14.5px] leading-7 text-cream/90 mt-4 whitespace-pre-wrap">{selected.message}</p>
+                  <h2 className="font-serif text-[20px] text-gold-300 mt-2 break-words">{selected.subject}</h2>
+                  <p className="text-[14.5px] leading-7 text-cream/90 mt-4 whitespace-pre-wrap break-words">{selected.message}</p>
                 </div>
 
                 <div className="mt-8 pt-5 border-t border-white/5 flex flex-wrap gap-3">

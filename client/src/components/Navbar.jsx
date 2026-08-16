@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { I } from './Icons.jsx';
-import { ADMIN_PATH, ADMIN_HASH } from '../lib/adminPath.js';
-import { NAV_LINKS } from '../lib/content.js';
+import { ADMIN_PATH, ADMIN_HASH } from '../lib/adminPath.jsx';
+import { NAV_LINKS } from '../lib/content.jsx';
+import { prefetchRoute } from '../lib/routes.jsx';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -58,6 +59,8 @@ export default function Navbar() {
                   isActive ? 'text-gold-400 bg-white/5' : 'text-muted hover:text-cream hover:bg-white/5'
                 }`
               }
+              onMouseEnter={() => prefetchRoute(to)}
+              onFocus={() => prefetchRoute(to)}
             >
               {label}
             </NavLink>

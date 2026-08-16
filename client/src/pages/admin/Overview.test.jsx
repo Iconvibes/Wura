@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Overview from './Overview.jsx';
 
-vi.mock('../../api.js', async (importOriginal) => {
+vi.mock('../../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../../api.js';
+import { api } from '../../api.jsx';
 
 const overview = {
   stats: {

@@ -89,7 +89,7 @@ export function buildConfirmationEmail(booking, room) {
     `To:          ${to}`,
     `Reference:   ${booking.ref}`,
     `Guest:       ${booking.guest_name}`,
-    `Room:        ${room.name} (${room.type})`,
+    `Room:        ${room.room_number ? `Room ${room.room_number} — ` : ''}${room.name} (${room.type})`,
     `Check-in:    ${booking.check_in}`,
     `Check-out:   ${booking.check_out}`,
     `Guests:      ${booking.guests}`,

@@ -125,6 +125,76 @@ const BOOKING_SEED = [
   { off: 12, nights: 4, guests: 4, name: 'The Adeyemi family', status: 'confirmed', paid: true },
 ];
 
+// Villas are standalone residences on the grounds — no floor number.
+const VILLA_NAMES = new Set(['Royal Villa', 'Garden Villa', 'Royal Villa Garden']);
+
+// Where unhinted rooms of each tier live: classic on the low floors, suites in
+// the middle of the tower, penthouses at the crown (floors 18–20).
+const TIER_FLOORS = {
+  Standard: [2, 3, 4],
+  Deluxe: [5, 6, 7, 8, 9],
+  Suite: [10, 11, 12, 13, 14, 15, 16, 17],
+  Penthouse: [18, 19, 20],
+};
+
+/** Floor from a room name that says so explicitly (e.g. 'Deluxe King 12th Floor'). */
+function floorFromName(name) {
+  const m = name.match(/(\d+)(?:st|nd|rd|th) Floor/);
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * Give every seeded room a real room number, deterministically:
+ * - standalone villas → V1, V2, V3 (no floor),
+ * - rooms whose name says a floor keep it (e.g. 12th Floor → 1201),
+ * - the rest fill their tier's floors (2–4 classic, 5–9 deluxe, 10–17 suites,
+ *   18–20 penthouses) with sequential units, in seed order.
+ * Returns the same rooms with floor + room_number attached.
+ */
+export function assignRoomNumbers(rooms) {
+  const units = new Map(); // floor -> next unit number
+  const nextUnit = (floor) => {
+    const u = (units.get(floor) || 0) + 1;
+    units.set(floor, u);
+    return `${floor}${String(u).padStart(2, '0')}`;
+  };
+
+  const out = [];
+  let villa = 1;
+  const hinted = [];
+  const unhinted = [];
+
+  for (const r of rooms) {
+    if (VILLA_NAMES.has(r.name)) {
+      out.push({ ...r, room_number: `V${villa++}`, floor: 0 });
+    } else if (floorFromName(r.name)) {
+      hinted.push({ ...r, floor: floorFromName(r.name) });
+    } else {
+      unhinted.push(r);
+    }
+  }
+
+  // Rooms that name their floor keep it (in seed order).
+  for (const r of hinted) {
+    out.push({ ...r, room_number: nextUnit(r.floor) });
+  }
+
+  // The rest cycle through their tier's floors in seed order.
+  for (const tier of ['Standard', 'Deluxe', 'Suite', 'Penthouse']) {
+    const floors = TIER_FLOORS[tier];
+    let fi = 0;
+    for (const r of unhinted.filter((x) => x.type === tier)) {
+      const floor = floors[fi % floors.length];
+      out.push({ ...r, floor, room_number: nextUnit(floor) });
+      fi++;
+    }
+  }
+
+  // Restore seed order (the visitor browsing order).
+  const byName = new Map(out.map((r) => [r.name, r]));
+  return rooms.map((r) => byName.get(r.name));
+}
+
 export async function seedIfEmpty() {
   const userCount = await User.countDocuments();
   if (userCount === 0) {
@@ -135,9 +205,11 @@ export async function seedIfEmpty() {
 
   const roomCount = await Room.countDocuments();
   if (roomCount === 0) {
-    const docs = ROOM_SEED.map(([name, type, price, capacity, size, amenities, description], i) => ({
-      name, type, description, price, capacity, size_sqm: size, amenities, art: roomArt(i, type),
-    }));
+    const docs = assignRoomNumbers(
+      ROOM_SEED.map(([name, type, price, capacity, size, amenities, description], i) => ({
+        name, type, description, price, capacity, size_sqm: size, amenities, art: roomArt(i, type),
+      }))
+    );
     await Room.insertMany(docs);
     console.log(`  seeded ${docs.length} rooms`);
   }
@@ -175,6 +247,41 @@ export async function seedIfEmpty() {
   if (messageCount === 0) {
     await seedMessages();
   }
+
+  await backfillRoomNumbers();
+}
+
+/**
+ * One-time migration: rooms seeded before room numbers existed get their
+ * deterministic number on boot (villas V1…, floor-named rooms keep their
+ * floor, the rest fill their tier's floors). Numbers that collide with an
+ * already-numbered room are bumped to the next free value.
+ */
+export async function backfillRoomNumbers() {
+  const missing = await Room.find({
+    $or: [{ room_number: { $exists: false } }, { room_number: null }],
+  }).lean();
+  if (!missing.length) return 0;
+
+  const taken = new Set(
+    (await Room.find({ room_number: { $exists: true, $ne: null } }).select('room_number').lean())
+      .map((r) => r.room_number)
+  );
+  const candidates = assignRoomNumbers(missing.map((r) => ({ ...r })));
+  const nextFree = (number) => {
+    if (/^\d{3,4}$/.test(number)) return String(Number(number) + 1);
+    const m = number.match(/^V(\d+)$/);
+    return m ? `V${Number(m[1]) + 1}` : number;
+  };
+
+  for (const c of candidates) {
+    let n = c.room_number;
+    while (taken.has(n)) n = nextFree(n);
+    taken.add(n);
+    await Room.updateOne({ _id: c._id }, { $set: { room_number: n, floor: c.floor } });
+  }
+  console.log(`  assigned room numbers to ${candidates.length} rooms`);
+  return candidates.length;
 }
 
 /* ------------------------------ contact inbox ------------------------------ */

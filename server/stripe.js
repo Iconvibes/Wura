@@ -56,7 +56,7 @@ export async function createCheckoutSession({ booking, room, nights, serverOrigi
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${room.name} · ${nightsLabel}`,
+              name: `${room.room_number ? `Room ${room.room_number} · ` : ''}${room.name} · ${nightsLabel}`,
               description: room.description ? room.description.slice(0, 190) : undefined,
             },
             unit_amount: unitAmount,
@@ -80,6 +80,7 @@ export async function createCheckoutSession({ booking, room, nights, serverOrigi
     guest_name: booking.guest_name,
     guest_email: booking.guest_email,
     room_name: room.name,
+    room_number: room.room_number,
     room_art: room.art,
     check_in: booking.check_in,
     check_out: booking.check_out,
@@ -126,7 +127,7 @@ export async function completeSession(sessionId) {
     { _id: booking._id, payment_status: { $ne: 'paid' } },
     { payment_status: 'paid', paid_at: new Date() },
     { new: true }
-  ).populate('room', 'name type art');
+  ).populate('room', 'name room_number floor type art');
 
   if (claimed) {
     const room = claimed.room;
@@ -138,7 +139,7 @@ export async function completeSession(sessionId) {
   }
 
   // Already paid — return the current state.
-  await booking.populate('room', 'name type art');
+  await booking.populate('room', 'name room_number floor type art');
   return booking;
 }
 
@@ -244,7 +245,7 @@ mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
     </div>
     <div class="card">
       <span class="tag">Sandbox payment — no real charge</span>
-      <div class="row">${art}<div><div class="lbl">Stay</div><div class="val">${s.room_name}</div></div></div>
+      <div class="row">${art}<div><div class="lbl">Stay</div><div class="val">${s.room_number ? `Room ${s.room_number} · ` : ''}${s.room_name}</div></div></div>
       <div class="row"><div style="flex:1"><div class="lbl">Guest</div><div class="val">${s.guest_name}</div></div><div style="flex:1"><div class="lbl">Dates</div><div class="val">${fmtIso(s.check_in)} → ${fmtIso(s.check_out)}</div></div></div>
       <div class="total"><span class="lbl">Total</span><span class="amt">${money(s.total)}</span></div>
       <div class="cols">

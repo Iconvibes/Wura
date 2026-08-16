@@ -5,12 +5,12 @@ import PageHero from '../components/PageHero.jsx';
 import Reveal from '../components/Reveal.jsx';
 import ParallaxImage from '../components/ParallaxImage.jsx';
 import { Icon } from '../components/Icons.jsx';
-import { AMENITIES, PAGE_HEROS } from '../lib/content.js';
-import { EXPERIENCE_PHOTOS } from '../lib/photos.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { AMENITIES, PAGE_HEROS } from '../lib/content.jsx';
+import { EXPERIENCE_PHOTOS } from '../lib/photos.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Experience() {
-  usePageMeta('The Experience — Wura Grand Hotel', 'Terrace pool, golden spa, wood-fired dining and more — every experience at Wura Grand is included with your stay.');
+  usePageMeta('The Experience — Wura Grand Hotel', 'Terrace pool, golden spa, wood-fired dining and more — every experience at Wura Grand is included with your stay.', '/social/experience.png', PAGE_HEROS.experience.image);
   return (
     <div>
       <Navbar />

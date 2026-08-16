@@ -13,10 +13,13 @@
     "start": "npm --prefix server start",
     "test": "npm test --prefix server && npm test --prefix client",
     "test:server": "npm test --prefix server",
-    "test:client": "npm test --prefix client"
+    "test:client": "npm test --prefix client",
+    "generate:social": "node scripts/generate-social-cards.mjs",
+    "generate:images": "node scripts/generate-image-variants.mjs"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "sharp": "^0.35.3"
   },
   "license": "MIT",
   "dependencies": {

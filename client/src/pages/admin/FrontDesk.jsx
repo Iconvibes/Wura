@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, money, fmtDate } from '../../api.js';
+import { api, money, fmtDate } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
 
@@ -48,7 +48,7 @@ function GuestCard({ b, type, onAction }) {
         </div>
 
         <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[12.5px] text-dim">
-          <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{Icon({ name: 'bookings', size: 13 })}</span> {b.room_name}</span>
+          <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{Icon({ name: 'bookings', size: 13 })}</span> {b.room_number ? `Room ${b.room_number} · ` : ''}{b.room_name}</span>
           <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{Icon({ name: 'users', size: 13 })}</span> {b.guests} guest{b.guests > 1 ? 's' : ''}</span>
           <span className="inline-flex items-center gap-1.5 font-mono text-[12px] text-gold-400">{b.ref}</span>
         </div>

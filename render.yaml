@@ -8,5 +8,5 @@ services:
     repo: https://github.com/Iconvibes/Wura
     buildCommand: "npm install && npm run setup && npm run build"
     startCommand: "npm start"
-    healthCheckPath: "/api/rooms"
+    healthCheckPath: "/health"
     autoDeploy: true

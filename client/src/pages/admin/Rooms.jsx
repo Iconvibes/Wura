@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { api, money } from '../../api.js';
+import { useEffect, useRef, useState } from 'react';
+import { api, money } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
+import PhotoPicker from './PhotoPicker.jsx';
 
-const EMPTY = { name: '', type: 'Standard', status: 'active', price: 199, capacity: 2, size_sqm: 32, amenities: 'King bed, Free Wi-Fi', description: '' };
+const EMPTY = { name: '', room_number: '', type: 'Standard', status: 'active', price: 199, capacity: 2, size_sqm: 32, amenities: 'King bed, Free Wi-Fi', description: '', photos: [] };
 
 export default function Rooms() {
   const [rooms, setRooms] = useState([]);
@@ -12,6 +13,7 @@ export default function Rooms() {
   const [editing, setEditing] = useState(null); // room object or null (new)
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -38,15 +40,47 @@ export default function Rooms() {
   const openEdit = (r) => {
     setEditing(r);
     setForm({
-      name: r.name, type: r.type, status: r.status, price: r.price, capacity: r.capacity,
-      size_sqm: r.size_sqm, amenities: r.amenities.join(', '), description: r.description,
+      name: r.name, room_number: r.room_number || '', type: r.type, status: r.status, price: r.price,
+      capacity: r.capacity, size_sqm: r.size_sqm, amenities: r.amenities.join(', '), description: r.description,
+      photos: r.photos || [],
     });
     setModal(true);
+  };
+
+  const togglePhoto = (src) => {
+    setForm((f) => ({
+      ...f,
+      photos: f.photos.includes(src)
+        ? f.photos.filter((p) => p !== src)
+        : f.photos.length >= 2 ? f.photos : [...f.photos, src],
+    }));
+  };
+
+  const removePhoto = (i) => setForm((f) => ({ ...f, photos: f.photos.filter((_, idx) => idx !== i) }));
+
+  const uploadRef = useRef(null);
+  const onUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) return toast('Image must be under 8 MB.', false);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const { url } = await api('/api/admin/upload', { method: 'POST', body: JSON.stringify({ image: reader.result }) });
+        setForm((f) => ({ ...f, photos: f.photos.length >= 2 ? f.photos : [...f.photos, url] }));
+        toast('Photo uploaded');
+      } catch (err) {
+        toast(err.message, false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const save = async () => {
     const payload = {
       name: form.name.trim(),
+      room_number: form.room_number.trim(),
       type: form.type,
       status: form.status,
       price: Number(form.price),
@@ -54,6 +88,7 @@ export default function Rooms() {
       size_sqm: Number(form.size_sqm),
       amenities: form.amenities.split(',').map((s) => s.trim()).filter(Boolean),
       description: form.description.trim(),
+      photos: form.photos,
     };
     if (!payload.name || !payload.description || !(payload.price > 0) || !(payload.capacity > 0)) {
       return toast('Name, description, price and capacity are required.', false);
@@ -115,17 +150,18 @@ export default function Rooms() {
         <div className="py-24"><div className="spinner" /></div>
       ) : (
         <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Rooms table (scroll horizontally with Shift + mouse wheel or arrow keys)">
             <table className="data-table">
               <thead>
-                <tr><th>Room</th><th>Type</th><th>Capacity</th><th>Size</th><th>Rate</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>№</th><th>Room</th><th>Type</th><th>Capacity</th><th>Size</th><th>Rate</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {rooms.map((r) => (
                   <tr key={r.id}>
+                    <td className="font-mono text-gold-400">{r.room_number || '—'}</td>
                     <td>
                       <div className="flex items-center gap-3">
-                        <img src={r.art} alt="" className="w-[54px] h-[38px] object-cover rounded-lg" />
+                        <img src={r.photos?.[0] || r.art} alt="" className="w-[54px] h-[38px] object-cover rounded-lg" />
                         <span className="font-bold text-cream">{r.name}</span>
                       </div>
                     </td>
@@ -151,6 +187,11 @@ export default function Rooms() {
         </div>
       )}
 
+      {/* photo browser — above the room modal (z-120 > z-100) */}
+      {pickerOpen && (
+        <PhotoPicker selected={form.photos} onToggle={togglePhoto} onClose={() => setPickerOpen(false)} />
+      )}
+
       {/* room modal */}
       {modal && (
         <div className="modal-backdrop open" onClick={() => setModal(false)}>
@@ -164,6 +205,10 @@ export default function Rooms() {
                 <div className="form-field">
                   <label>Room name</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Skyline Suite" />
+                </div>
+                <div className="form-field">
+                  <label>Room number <span className="opacity-50 normal-case">(blank = auto)</span></label>
+                  <input value={form.room_number} onChange={(e) => setForm({ ...form, room_number: e.target.value })} placeholder="e.g. 1204 or V4" className="font-mono" />
                 </div>
                 <div className="form-field">
                   <label>Type</label>
@@ -197,6 +242,29 @@ export default function Rooms() {
                 <div className="form-field sm:col-span-2">
                   <label>Description</label>
                   <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="A short, evocative description…" />
+                </div>
+                <div className="form-field sm:col-span-2">
+                  <label>Photos <span className="opacity-50 normal-case">(up to 2 — pick from our rooms or upload your own; the first is the card image)</span></label>
+                  <div className="flex flex-wrap gap-3">
+                    {[0, 1].map((i) => (
+                      <div key={i} className={`relative w-44 h-24 rounded-lg border overflow-hidden ${form.photos[i] ? 'border-gold-500' : 'border-dashed border-slate-500'}`}>
+                        {form.photos[i] ? (
+                          <>
+                            <img src={form.photos[i]} alt="" className="w-full h-full object-cover" />
+                            <span className="absolute top-1 left-1 text-[9px] px-1.5 py-0.5 rounded bg-black/60 text-gold-300 font-bold">{i === 0 ? 'CARD IMAGE' : 'GALLERY'}</span>
+                            <button type="button" className="absolute top-1 right-1 w-5 h-5 grid place-items-center rounded-full bg-black/70 text-cream text-[12px] leading-none" onClick={() => removePhoto(i)} aria-label="Remove photo">×</button>
+                          </>
+                        ) : (
+                          <span className="w-full h-full grid place-items-center text-[11px] text-dim">{i === 0 ? 'Card image' : 'Gallery photo'}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button type="button" className="btn btn-gold btn-sm" onClick={() => setPickerOpen(true)}>{Icon({ name: 'search', size: 13 })} Browse all 100 photos</button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => uploadRef.current && uploadRef.current.click()}>{Icon({ name: 'edit', size: 13 })} Upload your own</button>
+                    <input ref={uploadRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onUpload} />
+                  </div>
                 </div>
               </div>
             </div>

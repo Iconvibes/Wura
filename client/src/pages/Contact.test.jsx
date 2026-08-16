@@ -5,12 +5,12 @@ import { MemoryRouter } from 'react-router-dom';
 import Contact from './Contact.jsx';
 import { ToastHost } from '../components/Toast.jsx';
 
-vi.mock('../api.js', async (importOriginal) => {
+vi.mock('../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 
 beforeEach(() => {
   vi.clearAllMocks();

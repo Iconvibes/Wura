@@ -3,12 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import RoomDetail from './RoomDetail.jsx';
 
-vi.mock('../api.js', async (importOriginal) => {
+vi.mock('../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 
 const room = {
   id: 'r1',

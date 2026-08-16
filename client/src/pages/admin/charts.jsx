@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { money } from '../../api.js';
+import { money } from '../../api.jsx';
 
 // Hand-rolled SVG charts — no chart library, fully on-brand.
 // Gold ramp for donuts/bars.

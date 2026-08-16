@@ -59,7 +59,7 @@ describe('rooms CRUD', () => {
     expect(res.body.rooms[0].name).toBe('Listed Room');
   });
 
-  it('creates a room with generated art', async () => {
+  it('creates a room with generated art and an auto-assigned room number', async () => {
     const res = await request(app)
       .post('/api/admin/rooms')
       .set('Authorization', `Bearer ${token}`)
@@ -74,7 +74,40 @@ describe('rooms CRUD', () => {
       })
       .expect(201);
     expect(res.body.room).toMatchObject({ name: 'Panorama Suite', price: 450, status: 'active' });
+    expect(res.body.room.room_number).toMatch(/^\d{3,4}$/);
+    expect(res.body.room.floor).toBe(Math.floor(Number(res.body.room.room_number) / 100));
     expect(res.body.room.art).toContain('data:image/svg+xml');
+  });
+
+  it('accepts an explicit room number and rejects collisions', async () => {
+    await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'A', type: 'Standard', description: 'd', price: 100, capacity: 2, room_number: '708' })
+      .expect(201);
+    const clash = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'B', type: 'Standard', description: 'd', price: 100, capacity: 2, room_number: '708' })
+      .expect(409);
+    expect(clash.body.error).toMatch(/already exists/i);
+    const bad = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'C', type: 'Standard', description: 'd', price: 100, capacity: 2, room_number: 'abc' })
+      .expect(400);
+    expect(bad.body.error).toMatch(/room number/i);
+  });
+
+  it('renumbers a room on patch', async () => {
+    const room = await makeRoom({ name: 'Move Me', room_number: '902', floor: 9 });
+    const res = await request(app)
+      .patch(`/api/admin/rooms/${room._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ room_number: '1105' })
+      .expect(200);
+    expect(res.body.room.room_number).toBe('1105');
+    expect(res.body.room.floor).toBe(11);
   });
 
   it('validates required room fields', async () => {
@@ -95,6 +128,73 @@ describe('rooms CRUD', () => {
       .expect(200);
     expect(res.body.room.price).toBe(180);
     expect(res.body.room.status).toBe('maintenance');
+  });
+
+  it('stores admin-chosen photos on create and rejects invalid ones', async () => {
+    const ok = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Atrium Room', type: 'Deluxe', description: 'd', price: 210, capacity: 2,
+        photos: ['/images/rooms/deluxe-king-1.jpg', '/images/uploads/abc-123.png'],
+      })
+      .expect(201);
+    expect(ok.body.room.photos).toEqual(['/images/rooms/deluxe-king-1.jpg', '/images/uploads/abc-123.png']);
+
+    const external = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Evil', type: 'Standard', description: 'd', price: 100, capacity: 2, photos: ['https://evil.example/x.jpg'] })
+      .expect(201); // invalid entries are dropped, not accepted
+    expect(external.body.room.photos).toEqual([]);
+
+    const tooMany = await request(app)
+      .post('/api/admin/rooms')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Greedy', type: 'Standard', description: 'd', price: 100, capacity: 2,
+        photos: ['/images/rooms/a-1.jpg', '/images/rooms/b-1.jpg', '/images/rooms/c-1.jpg'],
+      })
+      .expect(400);
+    expect(tooMany.body.error).toMatch(/up to 2/i);
+  });
+
+  it('updates or clears photos on patch', async () => {
+    const room = await makeRoom({ name: 'Photo Swap' });
+    const set = await request(app)
+      .patch(`/api/admin/rooms/${room._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ photos: ['/images/rooms/deluxe-terrace-1.jpg'] })
+      .expect(200);
+    expect(set.body.room.photos).toEqual(['/images/rooms/deluxe-terrace-1.jpg']);
+
+    const clear = await request(app)
+      .patch(`/api/admin/rooms/${room._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ photos: [] })
+      .expect(200);
+    expect(clear.body.room.photos).toEqual([]);
+  });
+
+  it('uploads a base64 image (auth required, magic bytes verified)', async () => {
+    // 1×1 transparent PNG
+    const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const anon = await request(app).post('/api/admin/upload').send({ image: `data:image/png;base64,${PNG}` }).expect(401);
+    expect(anon.body.error).toMatch(/auth/i);
+
+    const ok = await request(app)
+      .post('/api/admin/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ image: `data:image/png;base64,${PNG}` })
+      .expect(201);
+    expect(ok.body.url).toMatch(/^\/images\/uploads\/[a-z0-9-]+\.png$/);
+
+    const badMagic = await request(app)
+      .post('/api/admin/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ image: `data:image/png;base64,${Buffer.from('definitely not an image').toString('base64')}` })
+      .expect(400);
+    expect(badMagic.body.error).toMatch(/magic|content|type/i);
   });
 
   it('404s on malformed room ids for patch/delete', async () => {

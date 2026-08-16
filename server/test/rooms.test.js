@@ -20,6 +20,8 @@ describe('GET /api/rooms', () => {
     const r = res.body.rooms[0];
     expect(r).toMatchObject({ name: 'Classic Queen', price: 129, status: 'active' });
     expect(r.id).toBeTruthy();
+    expect(r.room_number).toBeTruthy();
+    expect(r.floor).toBeGreaterThanOrEqual(2);
     expect(r.amenities).toEqual(['Free WiFi', 'Mini bar']);
     expect(res.body.pagination.total).toBe(1);
   });

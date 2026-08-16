@@ -47,6 +47,8 @@ export function roomToJson(r) {
   return {
     id: String(o._id),
     name: o.name,
+    room_number: o.room_number || null,
+    floor: o.floor != null ? o.floor : null,
     type: o.type,
     description: o.description,
     price: o.price,
@@ -54,6 +56,7 @@ export function roomToJson(r) {
     size_sqm: o.size_sqm,
     amenities: o.amenities || [],
     art: o.art,
+    photos: o.photos || [],
     status: o.status,
   };
 }
@@ -70,6 +73,8 @@ export function bookingToJson(b) {
     ref: o.ref,
     room_id: room._id ? String(room._id) : (o.room_id != null ? String(o.room_id) : null),
     room_name: room.name || o.room_name || null,
+    room_number: room.room_number || o.room_number || null,
+    room_floor: room.floor != null ? room.floor : (o.room_floor != null ? o.room_floor : null),
     room_type: room.type || o.room_type || null,
     room_art: room.art || o.room_art || null,
     guest_name: o.guest_name,

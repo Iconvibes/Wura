@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import BookingModal from './BookingModal.jsx';
 import { ToastHost } from './Toast.jsx';
 
-vi.mock('../api.js', async (importOriginal) => {
+vi.mock('../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 
 const roomA = { id: 'r1', name: 'Deluxe Garden', type: 'Deluxe', price: 199, capacity: 3, size_sqm: 36, art: 'data:image/svg+xml,x', description: 'Garden room' };
 const roomB = { id: 'r2', name: 'Skyline Suite', type: 'Suite', price: 399, capacity: 4, size_sqm: 60, art: 'data:image/svg+xml,y', description: 'Corner suite' };

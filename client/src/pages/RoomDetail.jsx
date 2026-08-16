@@ -5,18 +5,20 @@ import Footer from '../components/Footer.jsx';
 import Reveal from '../components/Reveal.jsx';
 import BookingModal from '../components/BookingModal.jsx';
 import { I, Icon } from '../components/Icons.jsx';
-import { api, money, addDays, todayISO } from '../api.js';
+import { api, money, addDays, todayISO } from '../api.jsx';
 import { toast } from '../components/Toast.jsx';
-import { roomPhotos } from '../lib/photos.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
-import { useJsonLd } from '../hooks/useJsonLd.js';
-import { roomOfferLD } from '../lib/seo.js';
+import { roomPhotos, roomPhoto, roomCardImage } from '../lib/photos.jsx';
+import ResponsiveImage from '../components/ResponsiveImage.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
+import { useJsonLd } from '../hooks/useJsonLd.jsx';
+import { roomOfferLD } from '../lib/seo.jsx';
 
 export default function RoomDetail() {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
   const [error, setError] = useState('');
-  usePageMeta(room ? `${room.name} — Wura Grand Hotel` : 'Room — Wura Grand Hotel', room ? `${room.name}: ${room.description}` : 'A signature room at Wura Grand Hotel.');
+  // preload the gallery's first photo (the LCP) with the stage's exact sizes
+  usePageMeta(room ? `${room.name} — Wura Grand Hotel` : 'Room — Wura Grand Hotel', room ? `${room.name}: ${room.description}` : 'A signature room at Wura Grand Hotel.', room ? roomCardImage(room) : undefined, room ? roomPhoto(room) : undefined, '(min-width: 1024px) 60vw, 100vw');
   // Per-room structured data: HotelRoom + Offer (removed when leaving the room).
   useJsonLd('seo-room-offer', room ? roomOfferLD(room) : null);
   const [active, setActive] = useState(0);
@@ -88,14 +90,14 @@ export default function RoomDetail() {
               <div className="xfade-stage">
                 {roomPhotos(room).map((src, i) => (
                   <div key={src} className={`xfade-img ${i === active ? 'active' : ''}`}>
-                    <img src={src} alt={`${room.name} — view ${i + 1}`} />
+                    <ResponsiveImage src={src} sizes="(min-width: 1024px) 60vw, 100vw" alt={`${room.name} — view ${i + 1}`} />
                   </div>
                 ))}
               </div>
               <div className="xfade-thumbs">
                 {roomPhotos(room).map((src, i) => (
                   <button key={src} className={`xfade-thumb ${i === active ? 'active' : ''}`} onClick={() => setActive(i)} aria-label={`View ${i + 1}`}>
-                    <img src={src} alt="" />
+                    <ResponsiveImage src={src} sizes="130px" alt="" loading="lazy" />
                   </button>
                 ))}
               </div>
@@ -127,7 +129,7 @@ export default function RoomDetail() {
           <div className="lg:sticky lg:top-24 space-y-4">
             <Reveal variant="right" delay={1}>
               <div className="card p-7">
-                <span className="text-[10px] tracking-[2.5px] uppercase text-gold-500 font-bold">{room.type}</span>
+                <span className="text-[10px] tracking-[2.5px] uppercase text-gold-500 font-bold">{room.type}{room.room_number ? ` · Room ${room.room_number}` : ''}</span>
                 <h1 className="font-serif text-[30px] text-cream mt-1.5">{room.name}</h1>
                 <div className="flex items-baseline gap-2 mt-4">
                   <span className="font-serif text-[34px] text-gold-400">{money(room.price)}</span>

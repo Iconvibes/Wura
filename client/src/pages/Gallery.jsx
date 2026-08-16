@@ -5,8 +5,9 @@ import Footer from '../components/Footer.jsx';
 import PageHero from '../components/PageHero.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { I } from '../components/Icons.jsx';
-import { PAGE_HEROS } from '../lib/content.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { PAGE_HEROS } from '../lib/content.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
+import ResponsiveImage from '../components/ResponsiveImage.jsx';
 
 const PHOTOS = [
   { src: '/images/hero.jpg', cap: 'The Golden Lobby', cat: 'hotel' },
@@ -39,7 +40,7 @@ const CATS = [
 const RATIOS = ['4/3', '3/4', '16/10', '1/1', '4/5', '3/2', '4/3', '1/1'];
 
 export default function Gallery() {
-  usePageMeta('Gallery — Wura Grand Hotel', 'A photographic record of Wura Grand — rooms, dining, wellness and the hotel itself, captured between check-ins.');
+  usePageMeta('Gallery — Wura Grand Hotel', 'A photographic record of Wura Grand — rooms, dining, wellness and the hotel itself, captured between check-ins.', '/social/gallery.png', PAGE_HEROS.gallery.image);
   const [lightbox, setLightbox] = useState(null); // index into the filtered list
   const [cat, setCat] = useState('all');
 
@@ -101,7 +102,7 @@ export default function Gallery() {
                 style={{ aspectRatio: RATIOS[i % RATIOS.length] }}
                 onClick={() => open(i)}
               >
-                <img src={g.src} alt={g.cap} loading="lazy" />
+                <ResponsiveImage src={g.src} sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw" alt={g.cap} loading="lazy" />
                 <div className="gal-overlay" />
                 <span className="gal-cat">{catName(g.cat)}</span>
                 <figcaption className="gal-cap">
@@ -143,7 +144,7 @@ export default function Gallery() {
         <div className="lightbox" role="dialog" aria-label={filtered[lightbox].cap} onClick={close}>
           <button className="lb-btn lb-close" onClick={close} aria-label="Close">{I.close({ width: 18, height: 18 })}</button>
           <button className="lb-btn lb-prev" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Previous">{I.prev({ width: 20, height: 20 })}</button>
-          <img src={filtered[lightbox].src} alt={filtered[lightbox].cap} onClick={(e) => e.stopPropagation()} />
+          <ResponsiveImage src={filtered[lightbox].src} sizes="100vw" alt={filtered[lightbox].cap} onClick={(e) => e.stopPropagation()} />
           <button className="lb-btn lb-next" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Next">{I.next({ width: 20, height: 20 })}</button>
           <span className="cap">
             {filtered[lightbox].cap} · {catName(filtered[lightbox].cat)}

@@ -3,12 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Rooms from './Rooms.jsx';
 
-vi.mock('../api.js', async (importOriginal) => {
+vi.mock('../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 
 const rooms = [
   { id: 'r1', name: 'Deluxe Garden', type: 'Deluxe', price: 199, capacity: 3, size_sqm: 36, art: 'x', description: 'Wake to the gardens.' },

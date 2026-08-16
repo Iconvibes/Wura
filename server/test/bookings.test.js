@@ -16,11 +16,13 @@ beforeEach(async () => {
 
 describe('POST /api/bookings', () => {
   it('creates an unpaid booking with a checkout url', async () => {
-    const room = await makeRoom({ price: 100 });
+    const room = await makeRoom({ price: 100, room_number: '1204', floor: 12 });
     const res = await request(app).post('/api/bookings').send(bookingPayload(room._id)).expect(201);
 
     expect(res.body.booking).toMatchObject({
       room_name: 'Test Room',
+      room_number: '1204',
+      room_floor: 12,
       guest_name: 'Jane Doe',
       total: 200, // 2 nights × $100
       status: 'confirmed',

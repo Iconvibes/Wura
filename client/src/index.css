@@ -14,7 +14,7 @@
   --color-gold-700: #94751f;
   --color-cream: #f4ead8;
   --color-muted: #9aa4c0;
-  --color-dim: #5f6a8a;
+  --color-dim: #7d89ab; /* ≥4.5:1 on navy-950 (was #5f6a8a / 3.56:1 — failed WCAG AA) */
   --color-red-soft: #f87171;
   --color-green-soft: #4ade80;
   --font-serif: "Georgia", "Times New Roman", serif;
@@ -23,12 +23,18 @@
 }
 
 /* --------------------------------- base ----------------------------------- */
-html { scroll-behavior: smooth; }
+/* overflow-x: clip (not hidden) — clips the pre-reveal slide transforms
+   (translateX(±46px) on .reveal-left/.reveal-right below the fold) that
+   otherwise push a 16px horizontal scrollbar onto RoomDetail, Experience and
+   Gallery pages. clip does NOT create a scroll container, so position: sticky
+   (the booking column) keeps working. */
+html { scroll-behavior: smooth; overflow-x: clip; }
 body {
   background: var(--color-navy-950);
   color: var(--color-cream);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
 ::selection { background: rgba(212, 175, 55, 0.35); color: #fff; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -120,6 +126,12 @@ input[type="date"] { color-scheme: dark; }
 }
 .field input:focus, .field select:focus, .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
   border-color: var(--color-gold-500); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+/* Icon-led inputs (calendar/users/search glyphs): the pl-10 utility would lose
+   to the .field padding shorthand above on specificity, leaving the glyph
+   overlapping the value — restore the left padding explicitly. */
+.field input.pl-10, .field select.pl-10, input.pl-10, select.pl-10 {
+  padding-left: 2.5rem;
 }
 .form-field input.invalid, .form-field textarea.invalid { border-color: var(--color-red-soft); }
 .err { color: var(--color-red-soft); font-size: 12px; min-height: 14px; }
@@ -399,14 +411,28 @@ input[type="date"] { color-scheme: dark; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .fade-up { animation: fadeUp 0.6s var(--ease-soft) both; }
 
-/* Route-change transition: every page fades in and rises as it mounts. */
+/* Route-change transition: every page fades in and rises as it mounts.
+   Direction-aware: pushing deeper slides in from the right (pageIn-forward),
+   going back slides in from the left (pageIn-back).
+   Note: no `filter: blur()` here — animating blur forces main-thread
+   rasterization every frame and dominated Lighthouse mobile Style & Layout
+   work (1.05s). The slide + fade keep the feel at compositor cost. */
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(18px) scale(0.995); filter: blur(5px); }
-  to   { opacity: 1; transform: none; filter: blur(0); }
+  from { opacity: 0; transform: translateY(18px) scale(0.995); }
+  to   { opacity: 1; transform: none; }
 }
-.page-enter { animation: pageIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; will-change: opacity, transform, filter; }
+@keyframes pageInForward {
+  from { opacity: 0; transform: translateX(42px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pageInBack {
+  from { opacity: 0; transform: translateX(-42px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-enter { animation: pageIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; will-change: opacity, transform; }
+.page-enter-back { animation: pageInBack 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter { animation: none; }
+  .page-enter, .page-enter-back { animation: none; }
 }
 
 /* Native View Transitions crossfade (Chromium 111+, Safari 18+, Firefox 140+).
@@ -414,18 +440,27 @@ input[type="date"] { color-scheme: dark; }
    crossfade with a whisper of brand-coloured light — layered over, never
    instead of, the .page-enter fallback below. Under reduced motion the browser
    itself skips the animation entirely. */
-@keyframes vt-gold-rise {
-  from { opacity: 0; transform: translateY(14px); }
+@keyframes vt-in-forward {
+  from { opacity: 0.2; transform: translateX(56px); }
   to   { opacity: 1; transform: none; }
 }
+@keyframes vt-in-back {
+  from { opacity: 0.2; transform: translateX(-56px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes vt-out-fade {
+  to { opacity: 0.3; }
+}
 ::view-transition-old(root) {
-  animation: 0.22s ease-out both vt-old-fade;
+  animation: 0.22s ease-out both vt-out-fade;
 }
-::view-transition-new(root) {
-  animation: 0.34s cubic-bezier(0.22, 1, 0.36, 1) both vt-gold-rise;
+/* Direction-aware: the direction class is set on <html> by
+   ViewTransitionProvider before the navigation starts. */
+html.vt-direction-forward ::view-transition-new(root) {
+  animation: 0.34s cubic-bezier(0.22, 1, 0.36, 1) both vt-in-forward;
 }
-@keyframes vt-old-fade {
-  to { opacity: 0.25; }
+html.vt-direction-back ::view-transition-new(root) {
+  animation: 0.34s cubic-bezier(0.22, 1, 0.36, 1) both vt-in-back;
 }
 /* A faint gold veil during the crossfade, echoing the house palette. */
 ::view-transition-group(root) {
@@ -433,6 +468,36 @@ input[type="date"] { color-scheme: dark; }
 }
 ::view-transition-image-pair(root) {
   mix-blend-mode: normal;
+}
+
+/* Brand signature — the gold veil sweep. The .vt-veil element is injected by
+   ViewTransitionProvider for the duration of a native transition: invisible
+   in the live DOM (fixed, full-viewport, transparent, inert), but it joins
+   the transition as its own snapshot (vt-veil) whose ::view-transition-new
+   paints a soft gold gradient that sweeps across and fades — a quiet "Wura"
+   moment on every route change. */
+.vt-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+  view-transition-name: vt-veil;
+}
+@keyframes vt-veil-sweep {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  12%  { opacity: 1; }
+  55%  { clip-path: inset(0 0 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+::view-transition-new(vt-veil) {
+  animation: vt-veil-sweep 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background:
+    linear-gradient(115deg, transparent 0%, rgba(212, 175, 55, 0.16) 30%, rgba(224, 192, 90, 0.30) 50%, rgba(212, 175, 55, 0.16) 70%, transparent 100%);
+}
+/* Reduced motion: never render the veil at all (it is only ever present
+   during a transition, and the provider skips injecting it anyway). */
+@media (prefers-reduced-motion: reduce) {
+  .vt-veil { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(root),

@@ -6,6 +6,30 @@
     <title>Wura Grand Hotel — Luxury Stay, Timeless Elegance</title>
     <meta name="description" content="Wura Grand Hotel: five-star rooms, skyline views and warm hospitality. Book your stay online." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Default head, mirroring the crawler prerender (server/prerender.js).
+         usePageMeta() rewrites title/meta/canonical per route at runtime —
+         this is just the consistent first paint before JS runs. -->
+    <link rel="canonical" href="/" />
+    <meta name="robots" content="index,follow" />
+    <!-- LCP preload: the hero AVIF variant starts fetching before the bundle
+         parses. usePageMeta() rewrites imagesrcset/imagesizes/href to the
+         current route's hero at runtime — keep href/srcset in sync with
+         `npm run generate:images`. -->
+    <link rel="preload" as="image" type="image/avif" href="/images/resp/hero-1200.avif"
+          imagesrcset="/images/resp/hero-480.avif 480w, /images/resp/hero-800.avif 800w, /images/resp/hero-1200.avif 1200w"
+          imagesizes="100vw" data-page-meta="preload" />
+    <!-- Rich link previews — per page usePageMeta() overwrites these at runtime. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wura Grand Hotel" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Wura Grand Hotel — Luxury Stay, Timeless Elegance" />
+    <meta property="og:description" content="Wura Grand Hotel: five-star rooms, skyline views and warm hospitality. Book your stay online." />
+    <meta property="og:url" content="https://wuragrand.example/" />
+    <meta property="og:image" content="https://wuragrand.example/social/home.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wura Grand Hotel — Luxury Stay, Timeless Elegance" />
+    <meta name="twitter:description" content="Wura Grand Hotel: five-star rooms, skyline views and warm hospitality. Book your stay online." />
+    <meta name="twitter:image" content="https://wuragrand.example/images/hero.jpg" />
   </head>
   <body>
     <div id="root"></div>

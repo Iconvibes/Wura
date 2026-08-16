@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom';
 import { I } from './Icons.jsx';
-import { money } from '../api.js';
-import { roomPhoto } from '../lib/photos.js';
+import { money } from '../api.jsx';
+import { roomPhoto } from '../lib/photos.jsx';
+import { prefetchRoomDetail } from '../lib/routes.jsx';
+import ResponsiveImage from './ResponsiveImage.jsx';
 
-export default function RoomCard({ room, unavailable, onBook }) {
+/**
+ * RoomCard — one room in a grid. `eager` is for the FIRST card in a grid:
+ * it skips lazy-loading (no fetchpriority boost, so the page hero stays the
+ * real priority resource).
+ */
+export default function RoomCard({ room, unavailable, onBook, eager = false }) {
+  const photo = roomPhoto(room);
   return (
     <article className={`card overflow-hidden group h-full ${unavailable ? 'opacity-55' : ''}`}>
       <button
@@ -12,7 +20,14 @@ export default function RoomCard({ room, unavailable, onBook }) {
         aria-label={`Book ${room.name}`}
       >
         {/* Real photography — zooms out as the card scrolls into view (.room-art) */}
-        <img src={roomPhoto(room)} alt={room.name} loading="lazy" className="w-full aspect-[10/7] object-cover room-art" />
+        <ResponsiveImage
+          src={photo}
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          alt={room.name}
+          eager={eager}
+          pictureClassName="block"
+          imgClassName="w-full aspect-[10/7] object-cover room-art"
+        />
         <span className="absolute top-3 left-3 text-[10px] tracking-[2px] uppercase font-bold text-gold-300 bg-navy-950/75 border border-gold-500/40 rounded-md px-2.5 py-1">
           {room.type}
         </span>
@@ -28,6 +43,9 @@ export default function RoomCard({ room, unavailable, onBook }) {
         </h3>
         <p className="text-[13px] text-muted leading-relaxed mt-1.5 line-clamp-2">{room.description}</p>
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-[12.5px] text-dim">
+          {room.room_number && (
+            <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{I.room({ width: 13, height: 13 })}</span> Room {room.room_number}</span>
+          )}
           <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{I.users({ width: 13, height: 13 })}</span> Up to {room.capacity} guests</span>
           <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{I.size({ width: 13, height: 13 })}</span> {room.size_sqm} m²</span>
           <span className="inline-flex items-center gap-1.5"><span className="text-gold-500">{I.check({ width: 13, height: 13 })}</span> Free cancellation</span>
@@ -38,7 +56,7 @@ export default function RoomCard({ room, unavailable, onBook }) {
             <span className="text-[12px] text-dim">/ night</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link to={`/rooms/${encodeURIComponent(room.name)}`} className="btn btn-ghost btn-sm">Details</Link>
+            <Link to={`/rooms/${encodeURIComponent(room.name)}`} onMouseEnter={prefetchRoomDetail} onFocus={prefetchRoomDetail} className="btn btn-ghost btn-sm">Details</Link>
             <button className="btn btn-gold btn-sm" onClick={() => onBook(room)} disabled={unavailable}>
               {unavailable ? 'Sold out' : 'Book now'}
             </button>

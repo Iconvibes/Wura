@@ -5,12 +5,12 @@ import PageHero from '../components/PageHero.jsx';
 import Reveal from '../components/Reveal.jsx';
 import ParallaxImage from '../components/ParallaxImage.jsx';
 import { Icon } from '../components/Icons.jsx';
-import { PAGE_HEROS, TIMELINE, VALUES, TRUST_STRIP } from '../lib/content.js';
-import { HERO_IMAGE } from '../lib/photos.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { PAGE_HEROS, TIMELINE, VALUES, TRUST_STRIP } from '../lib/content.jsx';
+import { HERO_IMAGE } from '../lib/photos.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function About() {
-  usePageMeta('Our Story — Wura Grand Hotel', 'Sixty years of quiet luxury: the history of Wura Grand, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.');
+  usePageMeta('Our Story — Wura Grand Hotel', 'Sixty years of quiet luxury: the history of Wura Grand, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.', '/social/about.png', PAGE_HEROS.about.image);
   return (
     <div>
       <Navbar />

@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../../api.js';
+import { api } from '../../api.jsx';
 import { toast } from '../../components/Toast.jsx';
-import { ADMIN_PATH } from '../../lib/adminPath.js';
+import { ADMIN_PATH } from '../../lib/adminPath.jsx';
+import { usePageMeta } from '../../hooks/usePageMeta.jsx';
 
 export default function AdminLogin() {
+  // No preload arg → the stale home-hero <link rel=preload> is removed and the
+  // tab shows a proper staff title (server also strips it on direct loads).
+  usePageMeta('Staff Login — Wura Grand Hotel', 'Authorized staff access to the Wura Grand Hotel staff portal.');
   const nav = useNavigate();
   const [accessCode, setAccessCode] = useState('');
   const [codeVerified, setCodeVerified] = useState(false);
@@ -12,6 +16,10 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+  const [resetSecret, setResetSecret] = useState('');
+  const [newCode, setNewCode] = useState('');
+  const [confirmCode, setConfirmCode] = useState('');
 
   const verifyCode = async (e) => {
     e.preventDefault();
@@ -53,6 +61,42 @@ export default function AdminLogin() {
     }
   };
 
+  // Lockout recovery — rotates the access code with the deploy-level secret
+  // (ADMIN_RESET_SECRET) so staff aren't locked out if the code is forgotten.
+  const recover = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!resetSecret.trim() || !newCode.trim() || !confirmCode.trim()) {
+      setError('Fill in all three fields.');
+      return;
+    }
+    if (newCode.length < 6 || newCode.length > 64) {
+      setError('The new code must be between 6 and 64 characters.');
+      return;
+    }
+    if (newCode !== confirmCode) {
+      setError('The new code and its confirmation do not match.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await api('/api/admin/recover-access-code', {
+        method: 'POST',
+        body: JSON.stringify({ reset_secret: resetSecret.trim(), code: newCode.trim() }),
+      });
+      toast('Access code reset — sign in with the new code');
+      setRecovering(false);
+      setResetSecret('');
+      setNewCode('');
+      setConfirmCode('');
+      setAccessCode('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="login-wrap">
       <div className="w-full max-w-md fade-up">
@@ -62,15 +106,17 @@ export default function AdminLogin() {
           <p className="text-[13px] text-muted mt-1">Wura Grand Hotel · Authorized staff only</p>
         </div>
 
-        {!codeVerified ? (
+        {!codeVerified && !recovering ? (
           <form className="card p-7" onSubmit={verifyCode}>
             <div className="form-field mb-4">
-              <label>Staff access code</label>
+              <label htmlFor="al-code">Staff access code</label>
               <input
+                id="al-code"
                 type="password"
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="off"
                 autoFocus
               />
             </div>
@@ -81,8 +127,17 @@ export default function AdminLogin() {
             <button className="btn btn-gold btn-block mt-5" disabled={busy || !accessCode.trim()}>
               {busy ? 'Checking…' : 'Continue'}
             </button>
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                className="text-[12.5px] text-dim hover:text-gold-400 transition-colors"
+                onClick={() => { setRecovering(true); setError(''); }}
+              >
+                Forgot the access code?
+              </button>
+            </div>
           </form>
-        ) : (
+        ) : codeVerified ? (
           <form className="card p-7" onSubmit={submit}>
             <div className="flex items-center justify-between mb-4">
               <span className="text-[12.5px] text-green-soft flex items-center gap-1.5">
@@ -97,16 +152,71 @@ export default function AdminLogin() {
               </button>
             </div>
             <div className="form-field mb-2">
-              <label>Username</label>
-              <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="admin" autoFocus />
+              <label htmlFor="al-user">Username</label>
+              <input id="al-user" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="admin" autoFocus />
             </div>
             <div className="form-field mb-2">
-              <label>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+              <label htmlFor="al-pass">Password</label>
+              <input id="al-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
             </div>
             {error && <p className="text-red-soft text-[13px] mt-3">{error}</p>}
             <button className="btn btn-gold btn-block mt-5" disabled={busy}>
               {busy ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        ) : (
+          <form className="card p-7" onSubmit={recover}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-[17px] text-cream">Recover access</h2>
+              <button
+                type="button"
+                className="text-[12px] text-dim hover:text-gold-400 transition-colors"
+                onClick={() => { setRecovering(false); setError(''); }}
+              >
+                Back to sign in
+              </button>
+            </div>
+            <p className="text-[12.5px] text-dim leading-relaxed mb-5">
+              Enter the recovery secret configured for this server to set a new
+              staff access code — you won't need the current one.
+            </p>
+            <div className="form-field mb-3">
+              <label htmlFor="al-secret">Recovery secret</label>
+              <input
+                id="al-secret"
+                type="password"
+                autoComplete="off"
+                value={resetSecret}
+                onChange={(e) => setResetSecret(e.target.value)}
+                placeholder="••••••••••••••••"
+                autoFocus
+              />
+            </div>
+            <div className="form-field mb-3">
+              <label htmlFor="al-newcode">New access code</label>
+              <input
+                id="al-newcode"
+                type="password"
+                autoComplete="new-password"
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                placeholder="6–64 characters"
+              />
+            </div>
+            <div className="form-field mb-3">
+              <label htmlFor="al-newcode2">Confirm new access code</label>
+              <input
+                id="al-newcode2"
+                type="password"
+                autoComplete="new-password"
+                value={confirmCode}
+                onChange={(e) => setConfirmCode(e.target.value)}
+                placeholder="Repeat the new code"
+              />
+            </div>
+            {error && <p className="text-red-soft text-[13px] mt-3">{error}</p>}
+            <button className="btn btn-gold btn-block mt-5" disabled={busy}>
+              {busy ? 'Recovering…' : 'Set new access code'}
             </button>
           </form>
         )}

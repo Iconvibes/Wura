@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function NotFound() {
   usePageMeta('Page not found — Wura Grand Hotel', 'The page you are looking for has checked out. Head back to the lobby.');

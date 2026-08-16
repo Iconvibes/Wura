@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, money, fmtDate } from '../../api.js';
+import { api, money, fmtDate } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { AreaChart, Donut, StatusBars, GOLD, STATUS_COLORS } from './charts.jsx';
 
@@ -197,7 +197,7 @@ export default function Overview() {
               <h2 className="font-serif text-[18px] text-cream">Recent bookings</h2>
               <span className="text-[12px] text-dim">Latest activity</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Recent bookings table (scroll horizontally with Shift + mouse wheel or arrow keys)">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -215,7 +215,7 @@ export default function Overview() {
                         <div className="font-bold text-cream">{b.guest_name}</div>
                         <div className="text-[12px] text-dim">{b.guest_email}</div>
                       </td>
-                      <td>{b.room_name}</td>
+                      <td>{b.room_number ? `Room ${b.room_number} · ` : ''}{b.room_name}</td>
                       <td className="whitespace-nowrap text-[12.5px]">{fmtDate(b.check_in)} → {fmtDate(b.check_out)}</td>
                       <td className="font-bold">{money(b.total)}</td>
                       <td><span className={`pill ${b.status}`}>{b.status.replace('_', ' ')}</span></td>

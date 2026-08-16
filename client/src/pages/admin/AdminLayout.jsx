@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { api } from '../../api.js';
+import { api } from '../../api.jsx';
 import { Icon } from '../../components/Icons.jsx';
 import { toast } from '../../components/Toast.jsx';
-import { ADMIN_PATH } from '../../lib/adminPath.js';
+import { ADMIN_PATH } from '../../lib/adminPath.jsx';
+import { usePageMeta } from '../../hooks/usePageMeta.jsx';
 
 const NAV = [
   [ADMIN_PATH, 'overview', 'Overview', 'chart'],
@@ -11,13 +12,29 @@ const NAV = [
   [`${ADMIN_PATH}/bookings`, 'bookings', 'Bookings', 'bookings'],
   [`${ADMIN_PATH}/rooms`, 'rooms', 'Rooms & Rates', 'room'],
   [`${ADMIN_PATH}/inbox`, 'inbox', 'Inbox', 'mail'],
+  [`${ADMIN_PATH}/settings`, 'settings', 'Settings', 'shield'],
 ];
+
+// Per-view tab labels so the staff portal never shows the guest home title.
+const VIEW_TITLES = {
+  overview: 'Dashboard',
+  'front-desk': 'Front Desk',
+  bookings: 'Bookings',
+  rooms: 'Rooms & Rates',
+  inbox: 'Inbox',
+  settings: 'Settings',
+};
 
 export default function AdminLayout() {
   const nav = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem('wura_token');
   const [unread, setUnread] = useState(0);
+
+  // Staff titles + drops the guest-site hero preload (admin has no hero — the
+  // server strips it too, this keeps the head clean after SPA navigation).
+  const rel = location.pathname.slice(ADMIN_PATH.length).replace(/^\/+/, '').split('/')[0] || 'overview';
+  usePageMeta(`${VIEW_TITLES[rel] || 'Staff Portal'} — Wura Grand Staff Portal`, 'Staff portal for Wura Grand Hotel — bookings, front desk, rooms and guest messages.');
 
   // Verify the stored token on mount. api() already redirects to /admin/login
   // on a 401, so the catch here only handles non-auth failures quietly. The
@@ -117,9 +134,10 @@ export default function AdminLayout() {
       </div>
 
       {/* main */}
-      <main className="flex-1 min-w-0 px-4 sm:px-8 pt-16 md:pt-8 pb-16">
+      {/* div, not <main> — App.jsx already provides the single main landmark */}
+      <div className="flex-1 min-w-0 px-4 sm:px-8 pt-16 md:pt-8 pb-16">
         <Outlet />
-      </main>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, money, fmtDate } from '../api.js';
+import { api, money, fmtDate } from '../api.jsx';
 import { I } from './Icons.jsx';
 
 export default function FindBookingModal({ open, onClose }) {
@@ -50,8 +50,9 @@ export default function FindBookingModal({ open, onClose }) {
         <div className="p-6">
           <p className="text-[13px] text-muted mb-4">Enter the reference from your confirmation email.</p>
           <div className="form-field">
-            <label>Booking reference</label>
+            <label htmlFor="fbm-ref">Booking reference</label>
             <input
+              id="fbm-ref"
               type="text"
               placeholder="e.g. WU1A2B3C"
               value={ref}
@@ -65,7 +66,7 @@ export default function FindBookingModal({ open, onClose }) {
           {result && (
             <div className="summary mt-5">
               <div className="row"><span>Reference</span><b className="font-mono text-gold-400">{result.ref}</b></div>
-              <div className="row"><span>Room</span><b>{result.room_name} · {result.room_type}</b></div>
+              <div className="row"><span>Room</span><b>{result.room_number ? `Room ${result.room_number} · ` : ''}{result.room_name} · {result.room_type}</b></div>
               <div className="row"><span>Guest</span><b>{result.guest_name}</b></div>
               <div className="row"><span>Dates</span><b>{fmtDate(result.check_in)} → {fmtDate(result.check_out)}</b></div>
               <div className="row"><span>Guests</span><b>{result.guests}</b></div>

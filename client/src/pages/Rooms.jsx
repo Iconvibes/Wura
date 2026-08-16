@@ -7,13 +7,13 @@ import Reveal from '../components/Reveal.jsx';
 import RoomCard from '../components/RoomCard.jsx';
 import BookingModal from '../components/BookingModal.jsx';
 import { I } from '../components/Icons.jsx';
-import { api, fmtDate, addDays, todayISO } from '../api.js';
+import { api, fmtDate, addDays, todayISO } from '../api.jsx';
 import { toast } from '../components/Toast.jsx';
-import { PAGE_HEROS } from '../lib/content.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { PAGE_HEROS } from '../lib/content.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Rooms() {
-  usePageMeta('Rooms & Suites — Wura Grand Hotel', 'Browse 50 rooms and suites across five tiers with live availability, free cancellation and skyline views. Book directly with Wura Grand.');
+  usePageMeta('Rooms & Suites — Wura Grand Hotel', 'Browse 50 rooms and suites across five tiers with live availability, free cancellation and skyline views. Book directly with Wura Grand.', '/social/rooms.png', PAGE_HEROS.rooms.image);
   const [params, setParams] = useSearchParams();
   const [dates, setDates] = useState(() => ({
     checkIn: params.get('checkIn') || todayISO(),
@@ -145,7 +145,8 @@ export default function Rooms() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {list.map((r, i) => (
                 <Reveal key={r.id} variant="zoom" delay={i % 3}>
-                  <RoomCard room={r} onBook={openBooking} />
+                  {/* first card skips lazy-loading so the grid paints fast */}
+                  <RoomCard room={r} onBook={openBooking} eager={i === 0} />
                 </Reveal>
               ))}
             </div>

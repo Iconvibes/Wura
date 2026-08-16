@@ -1,4 +1,5 @@
-import { useParallax } from '../hooks/useParallax.js';
+import { useParallax } from '../hooks/useParallax.jsx';
+import ResponsiveImage from './ResponsiveImage.jsx';
 
 // Inner-page banner: full-bleed photo that drifts on scroll, with a slow
 // ken-burns zoom and the standard gold-on-navy overlay.
@@ -9,7 +10,8 @@ export default function PageHero({ eyebrow, title, sub, image }) {
     <header className="relative min-h-[46vh] flex items-end overflow-hidden pt-32 pb-14">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div ref={parallax} className="absolute -inset-y-[18%] inset-x-0 parallax-layer">
-          <img src={image} alt="" className="w-full h-full object-cover kenburns" />
+          {/* LCP image on inner pages — eager, high priority, AVIF/WebP */}
+          <ResponsiveImage src={image} sizes="100vw" alt="" eager fetchPriority="high" imgClassName="w-full h-full object-cover kenburns" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-navy-950/80 via-navy-950/40 to-navy-950" />
         <div className="absolute inset-0 bg-[radial-gradient(800px_400px_at_15%_10%,rgba(212,175,55,0.10),transparent_60%)]" />

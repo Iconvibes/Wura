@@ -4,10 +4,10 @@ import Footer from '../components/Footer.jsx';
 import PageHero from '../components/PageHero.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { I, Icon } from '../components/Icons.jsx';
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 import { toast } from '../components/Toast.jsx';
-import { PAGE_HEROS } from '../lib/content.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { PAGE_HEROS } from '../lib/content.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 const INFO = [
   ['room', 'The address', '1 Golden Crescent, City Centre', 'Two blocks from the river promenade, ten minutes from the airport.'],
@@ -16,7 +16,7 @@ const INFO = [
 ];
 
 export default function Contact() {
-  usePageMeta('Contact — Wura Grand Hotel', 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.');
+  usePageMeta('Contact — Wura Grand Hotel', 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.', '/social/contact.png', PAGE_HEROS.contact.image);
   const [form, setForm] = useState({ name: '', email: '', subject: 'Reservation enquiry', message: '' });
   const [busy, setBusy] = useState(false);
   const [honeypot, setHoneypot] = useState('');

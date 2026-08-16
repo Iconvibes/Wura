@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
-import { api, money, fmtDate } from '../api.js';
+import { api, money, fmtDate } from '../api.jsx';
 import { I } from '../components/Icons.jsx';
 
 export default function BookingSuccess() {
@@ -53,7 +53,8 @@ export default function BookingSuccess() {
   return (
     <div className="min-h-screen bg-navy-950">
       <Navbar />
-      <main className="max-w-xl mx-auto px-5 pt-36 pb-20">
+      {/* div, not <main> — App.jsx already provides the single main landmark */}
+      <div className="max-w-xl mx-auto px-5 pt-36 pb-20">
         {state === 'loading' && (
           <div className="card p-12 text-center">
             <div className="spinner mx-auto" />
@@ -75,7 +76,7 @@ export default function BookingSuccess() {
             <div className="ref-code">{booking.ref}</div>
 
             <div className="summary text-left mt-5">
-              <div className="row"><span>Room</span><b>{booking.room_name}{booking.room_type ? ` · ${booking.room_type}` : ''}</b></div>
+              <div className="row"><span>Room</span><b>{booking.room_number ? `Room ${booking.room_number} · ` : ''}{booking.room_name}{booking.room_type ? ` · ${booking.room_type}` : ''}</b></div>
               <div className="row"><span>Dates</span><b>{fmtDate(booking.check_in)} → {fmtDate(booking.check_out)}</b></div>
               <div className="row"><span>Guests</span><b>{booking.guests}</b></div>
               <div className="row"><span>Payment</span><b className="text-green-400 flex items-center gap-1.5">{I.check({ width: 13, height: 13 })} Paid</b></div>
@@ -114,7 +115,7 @@ export default function BookingSuccess() {
             <Link to="/" className="btn btn-gold mt-6">Return home</Link>
           </div>
         )}
-      </main>
+      </div>
       <Footer onFindBooking={() => {}} />
     </div>
   );

@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import Inbox from './Inbox.jsx';
 import { ToastHost } from '../../components/Toast.jsx';
 
-vi.mock('../../api.js', async (importOriginal) => {
+vi.mock('../../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../../api.js';
+import { api } from '../../api.jsx';
 
 const unreadMsg = {
   id: 'm1', name: 'Grace Oyelaran', email: 'grace@example.com',

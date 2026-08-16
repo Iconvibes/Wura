@@ -3,11 +3,11 @@ import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import PageHero from '../components/PageHero.jsx';
 import Reveal from '../components/Reveal.jsx';
-import { STORIES, PAGE_HEROS } from '../lib/content.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
+import { STORIES, PAGE_HEROS } from '../lib/content.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Stories() {
-  usePageMeta('Guest Stories — Wura Grand Hotel', 'Five-star words from the people who know us best: 2,400+ verified guest reviews of Wura Grand Hotel.');
+  usePageMeta('Guest Stories — Wura Grand Hotel', 'Five-star words from the people who know us best: 2,400+ verified guest reviews of Wura Grand Hotel.', '/social/stories.png', PAGE_HEROS.stories.image);
   const [init, name, tag, quote] = STORIES[0];
 
   return (

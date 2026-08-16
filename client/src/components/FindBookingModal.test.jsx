@@ -3,16 +3,17 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FindBookingModal from './FindBookingModal.jsx';
 
-vi.mock('../api.js', async (importOriginal) => {
+vi.mock('../api.jsx', async (importOriginal) => {
   const actual = await importOriginal();
   return { ...actual, api: vi.fn() };
 });
 
-import { api } from '../api.js';
+import { api } from '../api.jsx';
 
 const booking = {
   ref: 'WU1A2B3',
   room_name: 'Deluxe Garden',
+  room_number: '1204',
   room_type: 'Deluxe',
   guest_name: 'Jane Doe',
   check_in: '2026-09-01',
@@ -42,7 +43,7 @@ describe('FindBookingModal', () => {
       expect(api).toHaveBeenCalledWith('/api/bookings/WU1A2B3');
     });
     expect(await screen.findByText('WU1A2B3')).toBeInTheDocument();
-    expect(screen.getByText('Deluxe Garden · Deluxe')).toBeInTheDocument();
+    expect(screen.getByText('Room 1204 · Deluxe Garden · Deluxe')).toBeInTheDocument();
     expect(screen.getByText('confirmed')).toBeInTheDocument();
   });
 

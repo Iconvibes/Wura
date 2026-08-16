@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { api, money, fmtDate, addDays, nightsBetween, todayISO } from '../api.js';
+import { api, money, fmtDate, addDays, nightsBetween, todayISO } from '../api.jsx';
 import { I } from './Icons.jsx';
 import { toast } from './Toast.jsx';
-import { roomPhoto } from '../lib/photos.js';
+import { roomPhoto } from '../lib/photos.jsx';
+import ResponsiveImage from './ResponsiveImage.jsx';
 
 const STEPS = [1, 2, 3];
 
@@ -113,16 +114,16 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
               <h4 className="font-serif text-[20px] text-cream mb-4">When would you like to stay?</h4>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="form-field">
-                  <label>Check-in</label>
-                  <input type="date" value={dates.checkIn} min={todayISO()} onChange={(e) => setDates({ ...dates, checkIn: e.target.value })} />
+                  <label htmlFor="bm-checkin">Check-in</label>
+                  <input id="bm-checkin" type="date" value={dates.checkIn} min={todayISO()} onChange={(e) => setDates({ ...dates, checkIn: e.target.value })} />
                 </div>
                 <div className="form-field">
-                  <label>Check-out</label>
-                  <input type="date" value={dates.checkOut} min={addDays(dates.checkIn, 1)} onChange={(e) => setDates({ ...dates, checkOut: e.target.value })} />
+                  <label htmlFor="bm-checkout">Check-out</label>
+                  <input id="bm-checkout" type="date" value={dates.checkOut} min={addDays(dates.checkIn, 1)} onChange={(e) => setDates({ ...dates, checkOut: e.target.value })} />
                 </div>
                 <div className="form-field sm:col-span-2">
-                  <label>Guests</label>
-                  <select value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
+                  <label htmlFor="bm-guests">Guests</label>
+                  <select id="bm-guests" value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
                     {[1, 2, 3, 4, 5, 6].map((g) => <option key={g} value={g}>{g} {g === 1 ? 'guest' : 'guests'}</option>)}
                   </select>
                 </div>
@@ -160,10 +161,10 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                   className={`bp-row ${room?.id === r.id ? 'selected' : ''}`}
                   onClick={() => setRoom(r)}
                 >
-                  <img src={roomPhoto(r.type)} alt={r.name} />
+                  <ResponsiveImage src={roomPhoto(r.type)} sizes="100px" alt={r.name} loading="lazy" />
                   <div className="min-w-0">
                     <div className="bp-name">{r.name}</div>
-                    <div className="bp-meta">{r.type} · up to {r.capacity} guests · {r.size_sqm} m²</div>
+                    <div className="bp-meta">{r.room_number ? `Room ${r.room_number} · ` : ''}{r.type} · up to {r.capacity} guests · {r.size_sqm} m²</div>
                   </div>
                   <div className="bp-price">{money(r.price)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span></div>
                 </div>
@@ -177,26 +178,26 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
               <h4 className="font-serif text-[20px] text-cream mb-4">Your details</h4>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="form-field sm:col-span-2">
-                  <label>Full name</label>
-                  <input type="text" placeholder="e.g. Amara Okafor" className={errors.name ? 'invalid' : ''} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  <label htmlFor="bm-name">Full name</label>
+                  <input id="bm-name" type="text" placeholder="e.g. Amara Okafor" className={errors.name ? 'invalid' : ''} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                   <span className="err">{errors.name || ''}</span>
                 </div>
                 <div className="form-field sm:col-span-2">
-                  <label>Email</label>
-                  <input type="email" placeholder="you@example.com" className={errors.email ? 'invalid' : ''} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <label htmlFor="bm-email">Email</label>
+                  <input id="bm-email" type="email" placeholder="you@example.com" className={errors.email ? 'invalid' : ''} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                   <span className="err">{errors.email || ''}</span>
                 </div>
                 <div className="form-field sm:col-span-2">
-                  <label>Phone <span className="opacity-50 normal-case">(optional)</span></label>
-                  <input type="tel" placeholder="+1 555 000 0000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <label htmlFor="bm-phone">Phone <span className="opacity-50 normal-case">(optional)</span></label>
+                  <input id="bm-phone" type="tel" placeholder="+1 555 000 0000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
                 <div className="form-field sm:col-span-2">
-                  <label>Special requests <span className="opacity-50 normal-case">(optional)</span></label>
-                  <textarea rows={2} placeholder="Late arrival, airport pickup, anniversary…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                  <label htmlFor="bm-requests">Special requests <span className="opacity-50 normal-case">(optional)</span></label>
+                  <textarea id="bm-requests" rows={2} placeholder="Late arrival, airport pickup, anniversary…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
               </div>
               <div className="summary mt-5">
-                <div className="row"><span>{room.name}</span><b>{money(room.price)} × {nights} night{nights > 1 ? 's' : ''}</b></div>
+                <div className="row"><span>{room.room_number ? `Room ${room.room_number} · ` : ''}{room.name}</span><b>{money(room.price)} × {nights} night{nights > 1 ? 's' : ''}</b></div>
                 <div className="row"><span>Dates</span><b>{fmtDate(dates.checkIn)} → {fmtDate(dates.checkOut)}</b></div>
                 <div className="row"><span>Guests</span><b>{guests}</b></div>
                 <div className="row total"><span>Total</span><b>{money(room.price * nights)}</b></div>

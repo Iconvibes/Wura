@@ -185,7 +185,15 @@ router.post('/bookings', rateLimit, async (req, res) => {
     return res.status(502).json({ error: 'Could not start checkout. Please try again.' });
   }
 
-  const booking = { ...doc.toObject(), room_id: String(room._id), room_name: room.name, room_type: room.type, room_art: room.art };
+  const booking = {
+    ...doc.toObject(),
+    room_id: String(room._id),
+    room_name: room.name,
+    room_number: room.room_number,
+    room_floor: room.floor,
+    room_type: room.type,
+    room_art: room.art,
+  };
   res.status(201).json({ booking: bookingToJson(booking), checkout_url });
 });
 
@@ -239,7 +247,7 @@ router.get('/bookings/:ref', async (req, res) => {
   // Escape regex metacharacters so a crafted ref can't widen the match.
   const ref = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const booking = await Booking.findOne({ ref: { $regex: `^${ref}$`, $options: 'i' } })
-    .populate('room', 'name type art')
+    .populate('room', 'name room_number floor type art')
     .lean();
   if (!booking) return res.status(404).json({ error: 'No booking found with that reference.' });
   res.json({ booking: bookingToJson(booking) });
@@ -253,7 +261,7 @@ router.post('/bookings/:ref/payment/complete', async (req, res) => {
   const raw = req.params.ref;
   const ref = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   let booking = await Booking.findOne({ ref: { $regex: `^${ref}$`, $options: 'i' } })
-    .populate('room', 'name type art')
+    .populate('room', 'name room_number floor type art')
     .lean();
   if (!booking) return res.status(404).json({ error: 'No booking found with that reference.' });
 

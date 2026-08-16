@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { I } from './Icons.jsx';
 import FindBookingModal from './FindBookingModal.jsx';
+import { prefetchRoute } from '../lib/routes.jsx';
 
 export default function Footer() {
   const [findOpen, setFindOpen] = useState(false);
@@ -24,19 +25,20 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Explore</h4>
+            {/* h2 (not h4) — the footer headings were skipping from the page's h2 down to h4, a heading-order violation */}
+            <h2 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Explore</h2>
             <ul className="space-y-2.5 text-[13.5px] text-muted">
-              <li><Link to="/rooms" className="hover:text-gold-400 transition-colors">Rooms &amp; Suites</Link></li>
-              <li><Link to="/experience" className="hover:text-gold-400 transition-colors">Experience</Link></li>
-              <li><Link to="/gallery" className="hover:text-gold-400 transition-colors">Gallery</Link></li>
-              <li><Link to="/stories" className="hover:text-gold-400 transition-colors">Guest stories</Link></li>
-              <li><Link to="/about" className="hover:text-gold-400 transition-colors">About the hotel</Link></li>
-              <li><Link to="/contact" className="hover:text-gold-400 transition-colors">Contact</Link></li>
+              <li><Link to="/rooms" onMouseEnter={() => prefetchRoute('/rooms')} onFocus={() => prefetchRoute('/rooms')} className="hover:text-gold-400 transition-colors">Rooms &amp; Suites</Link></li>
+              <li><Link to="/experience" onMouseEnter={() => prefetchRoute('/experience')} onFocus={() => prefetchRoute('/experience')} className="hover:text-gold-400 transition-colors">Experience</Link></li>
+              <li><Link to="/gallery" onMouseEnter={() => prefetchRoute('/gallery')} onFocus={() => prefetchRoute('/gallery')} className="hover:text-gold-400 transition-colors">Gallery</Link></li>
+              <li><Link to="/stories" onMouseEnter={() => prefetchRoute('/stories')} onFocus={() => prefetchRoute('/stories')} className="hover:text-gold-400 transition-colors">Guest stories</Link></li>
+              <li><Link to="/about" onMouseEnter={() => prefetchRoute('/about')} onFocus={() => prefetchRoute('/about')} className="hover:text-gold-400 transition-colors">About the hotel</Link></li>
+              <li><Link to="/contact" onMouseEnter={() => prefetchRoute('/contact')} onFocus={() => prefetchRoute('/contact')} className="hover:text-gold-400 transition-colors">Contact</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Stay with us</h4>
+            <h2 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Stay with us</h2>
             <ul className="space-y-2.5 text-[13.5px] text-muted">
               <li>
                 <button onClick={() => setFindOpen(true)} className="hover:text-gold-400 transition-colors">Find my booking</button>
@@ -47,7 +49,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Contact</h4>
+            <h2 className="text-[11px] tracking-[3px] uppercase text-gold-500 font-bold mb-4">Contact</h2>
             <ul className="space-y-3 text-[13.5px] text-muted">
               <li className="flex items-start gap-3">
                 <span className="text-gold-500 mt-0.5">{I.room({ width: 16, height: 16 })}</span>

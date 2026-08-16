@@ -1,7 +1,8 @@
 'use strict';
 
 import Room from './models/Room.js';
-import { roomToJson } from './lib.js';
+import { roomToJson, today, addDays } from './lib.js';
+import { roomPhoto, roomCardImage } from '../shared/roomPhotos.js';
 
 /* ------------------------------- bot detection ------------------------------ */
 
@@ -44,6 +45,7 @@ function ldHotel(origin) {
       streetAddress: '1 Golden Crescent',
       addressLocality: 'City Centre',
       addressRegion: 'Lagos',
+      postalCode: '100001',
       addressCountry: 'NG',
     },
     starRating: { '@type': 'Rating', ratingValue: '5' },
@@ -51,13 +53,19 @@ function ldHotel(origin) {
   };
 }
 
+// Room offers must use the Multi-Typed Entity form ([HotelRoom, Product]) — a
+// bare HotelRoom is a Place, not a Product, so `offers` on it alone trips a
+// schema.org validator warning (schema.org/docs/hotels.html).
 function ldRoom(room, origin) {
+  const url = `${origin}/rooms/${encodeURIComponent(room.name)}`;
   return {
     '@context': 'https://schema.org',
-    '@type': 'HotelRoom',
+    '@type': ['HotelRoom', 'Product'],
     name: room.name,
+    identifier: room.room_number,
     description: room.description,
-    url: `${origin}/rooms/${encodeURIComponent(room.name)}`,
+    url,
+    image: [roomPhoto(room)],
     occupancy: { '@type': 'QuantitativeValue', maxValue: room.capacity },
     offers: {
       '@type': 'Offer',
@@ -65,6 +73,9 @@ function ldRoom(room, origin) {
       price: String(Math.round(room.price)),
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
+      url,
+      priceValidUntil: addDays(today(), 365),
+      businessFunction: 'https://schema.org/LeaseOut',
     },
   };
 }
@@ -74,8 +85,11 @@ function ldRoom(room, origin) {
  * description, canonical + Open Graph tags, JSON-LD and visible content —
  * no JavaScript required.
  */
-function shell({ title, description, canonical, jsonLd = [], body }) {
+function shell({ title, description, canonical, image = '/images/hero.jpg', jsonLd = [], body }) {
   const ld = jsonLd.map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n');
+  // Social platforms require absolute og:image URLs — derive the origin from canonical.
+  const origin = canonical.split('/').slice(0, 3).join('/');
+  const ogImage = `${origin}${image}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,10 +100,16 @@ function shell({ title, description, canonical, jsonLd = [], body }) {
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Wura Grand Hotel" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
   <meta property="og:url" content="${esc(canonical)}" />
-  <meta property="og:image" content="${esc(canonical.split('/').slice(0, 3).join('/'))}/images/hero.jpg" />
+  <meta property="og:image" content="${esc(ogImage)}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${esc(title)}" />
+  <meta name="twitter:description" content="${esc(description)}" />
+  <meta name="twitter:image" content="${esc(ogImage)}" />
   <meta name="robots" content="index,follow" />
   ${ld}
   <style>
@@ -126,6 +146,7 @@ const STATIC_PAGES = {
   experience: {
     title: 'The Experience — Wura Grand Hotel',
     description: 'Terrace pool, golden spa, wood-fired dining and more — every experience at Wura Grand is included with your stay.',
+    image: '/social/experience.png',
     body: `
       <h1>The Experience</h1>
       <p class="sub">From the moment the doors open, everything is arranged around your comfort.</p>
@@ -142,21 +163,25 @@ const STATIC_PAGES = {
   gallery: {
     title: 'Gallery — Wura Grand Hotel',
     description: 'A photographic record of Wura Grand — rooms, dining, wellness and the hotel itself, captured between check-ins.',
+    image: '/social/gallery.png',
     body: `<h1>Gallery</h1><p class="sub">A quiet record of light, linen and skyline — captured between check-ins. Browse 16 frames across rooms, dining, wellness and the hotel itself.</p>`,
   },
   stories: {
     title: 'Guest Stories — Wura Grand Hotel',
     description: 'Five-star words from the people who know us best: 2,400+ verified guest reviews of Wura Grand Hotel.',
+    image: '/social/stories.png',
     body: `<h1>Guest Stories</h1><p class="sub">Loved by travellers — rated 4.9 out of 5 across 2,400+ reviews. The staff remember your name by day two.</p>`,
   },
   about: {
     title: 'Our Story — Wura Grand Hotel',
     description: 'Sixty years of quiet luxury: the history of Wura Grand, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.',
+    image: '/social/about.png',
     body: `<h1>Sixty years of quiet luxury</h1><p class="sub">Mariam Wura opened the doors in 1962 with ten rooms and one rule: every guest leaves knowing their name. Today her granddaughter Adaeze hosts on the same corner of Golden Crescent.</p>`,
   },
   contact: {
     title: 'Contact — Wura Grand Hotel',
     description: 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.',
+    image: '/social/contact.png',
     body: `<h1>Contact</h1><p class="sub">1 Golden Crescent, City Centre · +1 (555) 012-1962 · stay@wuragrand.example</p><p class="sub">The front desk answers around the clock — real people, no menus.</p>`,
   },
 };
@@ -176,6 +201,7 @@ export async function renderRoute(req) {
       title: 'Wura Grand Hotel — Luxury Stay, Timeless Elegance',
       description: 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.',
       canonical: origin + '/',
+      image: '/social/home.png',
       jsonLd: ld,
       body: `
         <h1>Where every stay feels golden</h1>
@@ -198,6 +224,7 @@ export async function renderRoute(req) {
       title: 'Rooms & Suites — Wura Grand Hotel',
       description: 'Browse 50 rooms and suites with live availability, free cancellation and skyline views. Book directly with Wura Grand.',
       canonical: origin + '/rooms',
+      image: '/social/rooms.png',
       jsonLd: ld,
       body: `<h1>Rooms &amp; Suites</h1><p class="sub">Every room is a quiet composition of linen, light and skyline. Free cancellation up to 48 hours before arrival.</p><ul>${list}</ul>`,
     });
@@ -209,14 +236,16 @@ export async function renderRoute(req) {
     const room = await Room.findOne({ name }).lean();
     if (room) {
       const r = roomToJson(room);
+      const roomLabel = r.room_number ? `Room ${r.room_number} · ` : '';
       const amenityTags = (r.amenities || []).map((a) => `<span class="tag">${esc(a)}</span>`).join('');
       return shell({
-        title: `${r.name} — Wura Grand Hotel`,
-        description: `${r.name}: ${r.description}`,
+        title: `${roomLabel}${r.name} — Wura Grand Hotel`,
+        description: `${roomLabel}${r.name}: ${r.description}`,
         canonical: `${origin}/rooms/${encodeURIComponent(r.name)}`,
+        image: roomCardImage(r),
         jsonLd: [...ld, ldRoom(r, origin)],
         body: `
-          <h1>${esc(r.name)}</h1>
+          <h1>${esc(roomLabel)}${esc(r.name)}</h1>
           <p class="tag">${esc(r.type)}</p>
           <p class="sub">${esc(r.description)}</p>
           <p class="price">${money(r.price)} / night · up to ${r.capacity} guests · ${r.size_sqm} m²</p>
@@ -233,6 +262,7 @@ export async function renderRoute(req) {
       title: slug.title,
       description: slug.description,
       canonical: origin + path,
+      image: slug.image,
       jsonLd: ld,
       body: slug.body,
     });
@@ -243,6 +273,7 @@ export async function renderRoute(req) {
     title: 'Wura Grand Hotel — Luxury Stay, Timeless Elegance',
     description: 'Wura Grand Hotel: five-star rooms, skyline views and warm hospitality.',
     canonical: origin + path,
+    image: '/social/home.png',
     jsonLd: ld,
     body: `<h1>Wura Grand Hotel</h1><p class="sub">Fifty rooms and suites, one standard of excellence. Rising above the city since 1962.</p><p class="sub"><a href="/">Return to the homepage →</a></p>`,
   });

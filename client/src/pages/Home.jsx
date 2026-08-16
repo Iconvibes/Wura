@@ -8,15 +8,16 @@ import RoomCard from '../components/RoomCard.jsx';
 import BookingModal from '../components/BookingModal.jsx';
 import ParallaxImage from '../components/ParallaxImage.jsx';
 import { I, Icon } from '../components/Icons.jsx';
-import { api, addDays, todayISO } from '../api.js';
+import { api, addDays, todayISO } from '../api.jsx';
 import { toast } from '../components/Toast.jsx';
-import { useParallax } from '../hooks/useParallax.js';
-import { usePageMeta } from '../hooks/usePageMeta.js';
-import { HERO_IMAGE, GALLERY_PHOTOS, EXPERIENCE_PHOTOS } from '../lib/photos.js';
-import { AMENITIES, STORIES, TRUST_STRIP } from '../lib/content.js';
+import { useParallax } from '../hooks/useParallax.jsx';
+import { usePageMeta } from '../hooks/usePageMeta.jsx';
+import { HERO_IMAGE, GALLERY_PHOTOS, EXPERIENCE_PHOTOS } from '../lib/photos.jsx';
+import ResponsiveImage from '../components/ResponsiveImage.jsx';
+import { AMENITIES, STORIES, TRUST_STRIP } from '../lib/content.jsx';
 
 export default function Home() {
-  usePageMeta('Wura Grand Hotel — Luxury Stay, Timeless Elegance', 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.');
+  usePageMeta('Wura Grand Hotel — Luxury Stay, Timeless Elegance', 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.', '/social/home.png', HERO_IMAGE);
   const nav = useNavigate();
   const [dates, setDates] = useState(() => {
     const ci = todayISO();
@@ -68,7 +69,8 @@ export default function Home() {
       <header className="relative min-h-[92vh] flex items-center overflow-hidden pt-28 pb-16">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div ref={heroParallax} className="absolute -inset-y-[20%] inset-x-0 parallax-layer">
-            <img src={HERO_IMAGE} alt="" className="w-full h-full object-cover kenburns" />
+            {/* LCP image — eager, high priority, AVIF/WebP with JPEG fallback */}
+            <ResponsiveImage src={HERO_IMAGE} sizes="100vw" alt="" eager fetchPriority="high" imgClassName="w-full h-full object-cover kenburns" />
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-navy-950/85 via-navy-950/45 to-navy-950/95" />
           <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_20%_15%,rgba(212,175,55,0.12),transparent_60%)]" />
@@ -141,7 +143,7 @@ export default function Home() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
               {featured.map((r, i) => (
                 <Reveal key={r.id} variant="zoom" delay={i % 3}>
-                  <RoomCard room={r} onBook={openBooking} />
+                  <RoomCard room={r} onBook={openBooking} eager={i === 0} />
                 </Reveal>
               ))}
             </div>
