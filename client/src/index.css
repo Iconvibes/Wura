@@ -416,7 +416,16 @@ input[type="date"] { color-scheme: dark; }
    going back slides in from the left (pageIn-back).
    Note: no `filter: blur()` here — animating blur forces main-thread
    rasterization every frame and dominated Lighthouse mobile Style & Layout
-   work (1.05s). The slide + fade keep the feel at compositor cost. */
+   work (1.05s). The slide + fade keep the feel at compositor cost.
+
+   Two hard constraints keep the fixed navbar viewport-anchored: (1) will-change
+   is opacity only — `will-change: transform` would make this wrapper the
+   containing block for position:fixed descendants; (2) the animation must not
+   use fill-mode `both`/`forwards`, because a filled animation leaves a computed
+   transform (even an identity matrix) applied forever, which also creates that
+   containing block — so the navbar would scroll away with the page. Without
+   fill, the wrapper returns to transform:none the moment the enter animation
+   finishes. */
 @keyframes pageIn {
   from { opacity: 0; transform: translateY(18px) scale(0.995); }
   to   { opacity: 1; transform: none; }
@@ -429,8 +438,8 @@ input[type="date"] { color-scheme: dark; }
   from { opacity: 0; transform: translateX(-42px); }
   to   { opacity: 1; transform: none; }
 }
-.page-enter { animation: pageIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; will-change: opacity, transform; }
-.page-enter-back { animation: pageInBack 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.page-enter { animation: pageIn 0.5s cubic-bezier(0.22, 1, 0.36, 1); will-change: opacity; }
+.page-enter-back { animation: pageInBack 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
 @media (prefers-reduced-motion: reduce) {
   .page-enter, .page-enter-back { animation: none; }
 }

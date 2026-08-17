@@ -71,8 +71,8 @@ export default function Rooms() {
       <section className="max-w-6xl mx-auto px-5 -mt-6 relative z-10">
         <Reveal variant="up" delay={0}>
           <div className="card p-5 flex flex-col gap-4">
-            <div className="grid sm:grid-cols-[1fr_auto_auto_auto] gap-3 items-end">
-              <div className="relative">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="relative flex-1 min-w-[220px]">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold-500">{I.search({ width: 16, height: 16 })}</span>
                 <input
                   type="text"
@@ -86,23 +86,23 @@ export default function Rooms() {
                   }}
                 />
               </div>
-              <div className="flex items-end gap-2">
-                <label className="text-[10.5px] tracking-[1.5px] uppercase text-dim">Check-in
+              <div className="grid grid-cols-2 md:flex md:flex-wrap md:items-end md:gap-2 gap-2">
+                <label className="text-[10.5px] tracking-[1.5px] uppercase text-dim flex flex-col md:flex-row md:items-center md:gap-0 gap-1 min-w-0">Check-in
                   <input type="date" value={dates.checkIn} onChange={(e) => setDates((d) => ({ ...d, checkIn: e.target.value }))}
-                    className="rounded-lg ml-2" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }} />
+                    className="rounded-lg md:ml-2 w-full md:w-auto min-w-0" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }} />
                 </label>
-                <label className="text-[10.5px] tracking-[1.5px] uppercase text-dim">Check-out
+                <label className="text-[10.5px] tracking-[1.5px] uppercase text-dim flex flex-col md:flex-row md:items-center md:gap-0 gap-1 min-w-0">Check-out
                   <input type="date" value={dates.checkOut} onChange={(e) => setDates((d) => ({ ...d, checkOut: e.target.value }))}
-                    className="rounded-lg ml-2" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }} />
+                    className="rounded-lg md:ml-2 w-full md:w-auto min-w-0" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }} />
                 </label>
                 <select value={guests} onChange={(e) => setGuests(Number(e.target.value))}
-                  className="rounded-lg" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }}>
+                  className="rounded-lg w-full md:w-auto min-w-0" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '9px 10px', fontSize: 13, outline: 'none' }}>
                   {[1, 2, 3, 4, 5, 6, 8].map((n) => <option key={n} value={n}>{n} guest{n > 1 ? 's' : ''}</option>)}
                 </select>
-                <button className="btn btn-gold btn-sm" onClick={() => { setPage(1); loadRooms(); }}>Update</button>
+                <button className="btn btn-gold btn-sm w-full md:w-auto" onClick={() => { setPage(1); loadRooms(); }}>Update</button>
               </div>
               <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }}
-                className="rounded-xl sm:w-40" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '11px 14px', fontSize: 14, outline: 'none' }}>
+                className="rounded-xl w-full md:w-40 min-w-0" style={{ background: 'var(--color-navy-900)', border: '1px solid rgba(148,163,184,0.22)', color: 'var(--color-cream)', padding: '11px 14px', fontSize: 14, outline: 'none' }}>
                 <option value="name-asc">Name ↑</option>
                 <option value="name-desc">Name ↓</option>
                 <option value="price-asc">Price ↑</option>

@@ -39,6 +39,7 @@ export default function AdminLayout() {
   const token = localStorage.getItem('wura_token');
   const [unread, setUnread] = useState(0);
   const [user, setUser] = useState(null); // { username, role } from /me
+  const [hidden, setHidden] = useState(false); // mobile top bar slides away on scroll down
 
   // Staff titles + drops the guest-site hero preload (admin has no hero — the
   // server strips it too, this keeps the head clean after SPA navigation).
@@ -55,6 +56,22 @@ export default function AdminLayout() {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  // Mobile top bar mirrors the guest navbar: hide once the user scrolls down
+  // past the header, reappear the moment they scroll back up.
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setHidden(y > 160 && y > lastY);
+      lastY = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Every navigation lands at the top of the new view, so unhide the bar.
+  useEffect(() => { setHidden(false); }, [location.pathname]);
 
   useEffect(() => {
     if (!token) return;
@@ -130,13 +147,23 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* mobile top bar + nav */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-navy-900/95 backdrop-blur border-b border-white/5">
-        <div className="flex items-center justify-between px-4 py-3">
+      {/* mobile top bar + nav — same slide/fade choreography as the guest navbar */}
+      <div aria-hidden="true"
+        className={`md:hidden fixed top-0 left-0 right-0 z-30 h-16 pointer-events-none backdrop-blur-[8px] bg-gradient-to-b from-navy-950/40 to-transparent transition-opacity duration-[400ms] ease-(--ease-soft) ${
+          hidden ? 'opacity-100' : 'opacity-0'
+        }`} />
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-40 bg-navy-900/95 backdrop-blur border-b border-white/5 transition-all duration-[400ms] ease-(--ease-soft) ${
+        hidden ? '-translate-y-full' : ''
+      }`}>
+        <div className={`flex items-center justify-between px-4 py-3 transition-opacity duration-[400ms] ease-(--ease-soft) ${
+          hidden ? 'opacity-0' : 'opacity-100'
+        }`}>
           <span className="font-serif text-[15px] tracking-[1.5px] text-cream">WURA GRAND · STAFF</span>
           <button className="btn btn-ghost btn-sm" onClick={logout}>Sign out</button>
         </div>
-        <nav className="flex gap-1.5 overflow-x-auto px-3 pb-3">
+        <nav className={`flex gap-1.5 overflow-x-auto px-3 pb-3 transition-opacity duration-[400ms] ease-(--ease-soft) delay-100 ${
+          hidden ? 'opacity-0' : 'opacity-100'
+        }`}>
           {navItems.map(([path, key, label, icon]) => (
             <NavLink key={path} to={path} end={path === ADMIN_PATH}
               className={({ isActive }) => `side-item !py-2 !px-3.5 whitespace-nowrap ${isActive ? 'active' : ''}`}>
