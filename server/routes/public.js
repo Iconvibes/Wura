@@ -6,7 +6,6 @@ import Room from '../models/Room.js';
 import Booking from '../models/Booking.js';
 import { roomToJson, bookingToJson, validDate, today, nightsBetween, newRef } from '../lib.js';
 import { rateLimit } from '../middleware.js';
-import { createCheckoutSession, completeSession } from '../stripe.js';
 import { saveContactMessage } from '../email.js';
 
 const router = Router();
@@ -115,6 +114,7 @@ router.get('/rooms/:id', async (req, res) => {
 });
 
 /* ------------------------------ POST /api/bookings ------------------------ */
+// Book a room — pay on arrival at the front desk. No online payment.
 router.post('/bookings', rateLimit, async (req, res) => {
   const { room_id, guest_name, guest_email, guest_phone, check_in, check_out, guests, notes } = req.body || {};
 
@@ -163,28 +163,7 @@ router.post('/bookings', rateLimit, async (req, res) => {
     payment_status: 'unpaid',
   });
 
-  // Create the checkout session (real Stripe, or the mock page in dev) and
-  // hand the guest off to the hosted payment page.
-  const nights = nightsBetween(check_in, check_out);
-  const serverOrigin = `${req.protocol}://${req.get('host')}`;
-  let checkout_url;
-  try {
-    const cs = await createCheckoutSession({
-      booking: doc,
-      room,
-      nights,
-      serverOrigin,
-    });
-    doc.stripe_session_id = cs.id;
-    await doc.save();
-    checkout_url = cs.url;
-  } catch (e) {
-    // Payment setup failed — don't leave an orphaned booking holding the room.
-    console.error('  Checkout session error:', e.message);
-    await Booking.findByIdAndDelete(doc._id).catch(() => {});
-    return res.status(502).json({ error: 'Could not start checkout. Please try again.' });
-  }
-
+  const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://127.0.0.1:5173';
   const booking = {
     ...doc.toObject(),
     room_id: String(room._id),
@@ -194,6 +173,7 @@ router.post('/bookings', rateLimit, async (req, res) => {
     room_type: room.type,
     room_art: room.art,
   };
+  const checkout_url = `${CLIENT_ORIGIN}/booking/success?ref=${encodeURIComponent(doc.ref)}`;
   res.status(201).json({ booking: bookingToJson(booking), checkout_url });
 });
 
@@ -250,33 +230,6 @@ router.get('/bookings/:ref', async (req, res) => {
     .populate('room', 'name room_number floor type art')
     .lean();
   if (!booking) return res.status(404).json({ error: 'No booking found with that reference.' });
-  res.json({ booking: bookingToJson(booking) });
-});
-
-/* --------------------- POST /api/bookings/:ref/payment/complete ----------- */
-// Called by the success page after the guest returns from checkout. Verifies
-// the session is paid (webhooks can lag, so this makes the page deterministic)
-// and marks the booking paid. Safe to call repeatedly.
-router.post('/bookings/:ref/payment/complete', async (req, res) => {
-  const raw = req.params.ref;
-  const ref = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  let booking = await Booking.findOne({ ref: { $regex: `^${ref}$`, $options: 'i' } })
-    .populate('room', 'name room_number floor type art')
-    .lean();
-  if (!booking) return res.status(404).json({ error: 'No booking found with that reference.' });
-
-  const sessionId = req.body?.session_id || booking.stripe_session_id;
-  if (sessionId) {
-    const updated = await completeSession(sessionId);
-    if (updated) booking = updated.toObject ? updated.toObject() : updated;
-  }
-
-  if (booking.payment_status !== 'paid') {
-    return res.status(402).json({
-      error: 'Payment for this booking is still pending.',
-      booking: bookingToJson(booking),
-    });
-  }
   res.json({ booking: bookingToJson(booking) });
 });
 

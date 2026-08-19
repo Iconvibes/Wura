@@ -6,6 +6,7 @@ import { connectDB } from './db.js';
 import { seedIfEmpty } from './seed.js';
 import { migrateUploadsFromDisk } from './gridfs.js';
 import { startKeepAlive } from './keepalive.js';
+import { startUnpaidSweeper } from './cancelUnpaid.js';
 
 const PORT = Number(process.env.PORT) || 5000;
 
@@ -64,6 +65,7 @@ const app = createApp();
   console.log(`  ➜ Client:       http://127.0.0.1:5173  (vite dev)\n`);
 
   startKeepAlive();
+  startUnpaidSweeper();
 
   const shutdown = async () => {
     await mongoose_disconnect_guard(mem);

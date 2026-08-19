@@ -10,24 +10,23 @@ vi.mock('../api.jsx', async (importOriginal) => {
 
 import { api } from '../api.jsx';
 
-const paidBooking = {
+const booking = {
   ref: 'WUPAID42',
   guest_name: 'Jane Doe',
   guest_email: 'jane@example.com',
   room_name: 'Deluxe Garden',
+  room_number: '1204',
   room_type: 'Deluxe',
   check_in: '2026-09-01',
   check_out: '2026-09-03',
   guests: 2,
   total: 398,
-  payment_status: 'paid',
+  payment_status: 'unpaid',
 };
 
-const unpaidBooking = { ...paidBooking, ref: 'WUPEND42', payment_status: 'unpaid' };
-
-function renderPage(ref = 'WUPAID42', sessionId = 'cs_1') {
+function renderPage(ref = 'WUPAID42') {
   return render(
-    <MemoryRouter initialEntries={[`/booking/success?ref=${ref}&session_id=${sessionId}`]}>
+    <MemoryRouter initialEntries={[`/booking/success?ref=${ref}`]}>
       <BookingSuccess />
     </MemoryRouter>
   );
@@ -38,37 +37,17 @@ beforeEach(() => {
 });
 
 describe('BookingSuccess', () => {
-  it('shows the paid confirmation with reference and totals', async () => {
-    api.mockResolvedValue({ booking: paidBooking });
+  it('shows the booking confirmation with reference and totals', async () => {
+    api.mockResolvedValue({ booking });
 
     renderPage();
 
     expect(await screen.findByText("You're booked, Jane!")).toBeInTheDocument();
     expect(screen.getByText('WUPAID42')).toBeInTheDocument();
-    expect(screen.getByText('Paid')).toBeInTheDocument();
+    expect(screen.getByText('Pay at front desk')).toBeInTheDocument();
     expect(screen.getByText('$398')).toBeInTheDocument();
-    // Verify the payment-complete endpoint was called with the session id.
-    expect(api).toHaveBeenCalledWith(
-      '/api/bookings/WUPAID42/payment/complete',
-      expect.objectContaining({ body: JSON.stringify({ session_id: 'cs_1' }) })
-    );
-  });
-
-  it('shows a pending state when payment confirmation has not landed', async () => {
-    api.mockImplementation((path) => {
-      if (path.includes('/payment/complete')) {
-        return Promise.reject(new Error('Payment for this booking is still pending.'));
-      }
-      if (path.startsWith('/api/bookings/')) {
-        return Promise.resolve({ booking: unpaidBooking });
-      }
-      return Promise.reject(new Error(`Unexpected: ${path}`));
-    });
-
-    renderPage('WUPEND42');
-
-    expect(await screen.findByText("We're confirming your payment")).toBeInTheDocument();
-    expect(screen.getByText('WUPEND42')).toBeInTheDocument();
+    // Should fetch the booking by ref — no payment/complete call.
+    expect(api).toHaveBeenCalledWith('/api/bookings/WUPAID42');
   });
 
   it('shows an error state when the booking cannot be found', async () => {

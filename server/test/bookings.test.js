@@ -15,7 +15,7 @@ beforeEach(async () => {
 });
 
 describe('POST /api/bookings', () => {
-  it('creates an unpaid booking with a checkout url', async () => {
+  it('creates a booking with a success-page url (pay on arrival)', async () => {
     const room = await makeRoom({ price: 100, room_number: '1204', floor: 12 });
     const res = await request(app).post('/api/bookings').send(bookingPayload(room._id)).expect(201);
 
@@ -29,7 +29,9 @@ describe('POST /api/bookings', () => {
       payment_status: 'unpaid',
     });
     expect(res.body.booking.ref).toMatch(/^WU[A-Z2-9]{6}$/);
-    expect(res.body.checkout_url).toContain('/mock-checkout/');
+    // URL points to the success page — no Stripe checkout.
+    expect(res.body.checkout_url).toContain('/booking/success?ref=');
+    expect(res.body.checkout_url).not.toContain('/mock-checkout');
   });
 
   it('rejects overlapping bookings for the same room (409)', async () => {

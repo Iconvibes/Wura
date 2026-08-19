@@ -87,6 +87,12 @@ export function bookingToJson(b) {
     status: o.status,
     payment_status: o.payment_status || 'unpaid',
     paid_at: o.paid_at || null,
+    payment_history: (o.payment_history || []).map((h) => ({
+      action: h.action,
+      by: h.by || 'system',
+      at: h.at || null,
+      note: h.note || '',
+    })),
     notes: o.notes || '',
     created_at: o.created_at || o.createdAt,
   };

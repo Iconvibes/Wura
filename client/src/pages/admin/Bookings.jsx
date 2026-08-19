@@ -46,6 +46,17 @@ export default function Bookings() {
     }
   };
 
+  const markPaid = async (b) => {
+    if (!window.confirm(`Mark booking ${b.ref} as paid?`)) return;
+    try {
+      await api(`/api/admin/bookings/${b.id}`, { method: 'PATCH', body: JSON.stringify({ payment_status: 'paid' }) });
+      toast('Payment recorded');
+      load();
+    } catch (e) {
+      toast(e.message, false);
+    }
+  };
+
   const remove = async (b) => {
     if (!window.confirm(`Delete booking ${b.ref}? This cannot be undone.`)) return;
     try {
@@ -123,6 +134,9 @@ export default function Bookings() {
                         )}
                         {b.status === 'checked_in' && (
                           <button className="icon-btn" title="Check out" onClick={() => action(b, 'checked_out')}>{Icon({ name: 'logout', size: 15 })}</button>
+                        )}
+                        {b.payment_status === 'unpaid' && (b.status === 'confirmed' || b.status === 'checked_in') && (
+                          <button className="icon-btn" title="Mark as paid" onClick={() => markPaid(b)}>{Icon({ name: 'shield', size: 15 })}</button>
                         )}
                         {(b.status === 'confirmed' || b.status === 'checked_in') && (
                           <button className="icon-btn danger" title="Cancel booking" onClick={() => action(b, 'cancelled')}>{Icon({ name: 'trash', size: 15 })}</button>

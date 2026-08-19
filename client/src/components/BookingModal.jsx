@@ -41,9 +41,11 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
   }, [open, onClose]);
 
-  // When we reach step 2, fetch availability fresh for the current dates/guests.
+  // When we reach step 2 without a pre-selected room, fetch all available rooms.
+  // If initialRoom was provided (clicked "Reserve" on a specific room page),
+  // skip the list — the user already chose their room.
   useEffect(() => {
-    if (!open || step !== 2) return;
+    if (!open || step !== 2 || initialRoom) return;
     const key = `${dates.checkIn}|${dates.checkOut}|${guests}`;
     if (fetchedFor === key) return;
     setLoadingRooms(true);
@@ -52,7 +54,7 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
       .catch((e) => { toast(e.message, false); setAvailable([]); setFetchedFor(key); })
       .finally(() => setLoadingRooms(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, step, dates.checkIn, dates.checkOut, guests, fetchedFor]);
+  }, [open, step, initialRoom, dates.checkIn, dates.checkOut, guests, fetchedFor]);
 
   if (!open) return null;
   const nights = nightsBetween(dates.checkIn, dates.checkOut) || 1;
@@ -66,9 +68,6 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
 
     setSubmitting(true);
     try {
-      // Creating the booking returns a checkout_url (Stripe, or the sandbox
-      // mock page in dev). Hand the guest off to the hosted payment page —
-      // they return to /booking/success once paid.
       const { checkout_url } = await api('/api/bookings', {
         method: 'POST',
         body: JSON.stringify({
@@ -115,11 +114,22 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="form-field">
                   <label htmlFor="bm-checkin">Check-in</label>
-                  <input id="bm-checkin" type="date" value={dates.checkIn} min={todayISO()} onChange={(e) => setDates({ ...dates, checkIn: e.target.value })} />
+                  <input id="bm-checkin" type="date" value={dates.checkIn} min={todayISO()} onChange={(e) => {
+                    const ci = e.target.value;
+                    const next = { ...dates, checkIn: ci };
+                    if (dates.checkOut && dates.checkOut <= ci) next.checkOut = addDays(ci, 1);
+                    setDates(next);
+                  }} />
                 </div>
                 <div className="form-field">
-                  <label htmlFor="bm-checkout">Check-out</label>
-                  <input id="bm-checkout" type="date" value={dates.checkOut} min={addDays(dates.checkIn, 1)} onChange={(e) => setDates({ ...dates, checkOut: e.target.value })} />
+                  <label htmlFor="bm-nights">Nights</label>
+                  <select id="bm-nights" value={nights} onChange={(e) => {
+                    setDates({ ...dates, checkOut: addDays(dates.checkIn, Number(e.target.value)) });
+                  }}>
+                    {Array.from({ length: 14 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>{n} night{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-field sm:col-span-2">
                   <label htmlFor="bm-guests">Guests</label>
@@ -138,41 +148,60 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
           {/* STEP 2 — pick room */}
           {step === 2 && (
             <>
-              <h4 className="font-serif text-[20px] text-cream mb-1">Choose your room</h4>
-              <p className="text-[13px] text-muted mb-4">
-                {fmtDate(dates.checkIn)} → {fmtDate(dates.checkOut)} · {nights} night{nights > 1 ? 's' : ''} · {guests} guest{guests > 1 ? 's' : ''}
-              </p>
-              {loadingRooms && <div className="spinner" />}
-              {!loadingRooms && available.length === 0 && !room && (
-                <div className="text-center py-8">
-                  <div className="font-serif text-[18px] text-cream">Sold out</div>
-                  <p className="text-[13px] text-muted mt-1">No rooms match those dates. Try shifting your stay.</p>
-                </div>
-              )}
-              {!loadingRooms && available.length === 0 && room && (
-                <div className="text-center py-8">
-                  <div className="font-serif text-[18px] text-cream">{room.name}</div>
-                  <p className="text-[13px] text-muted mt-1">{room.type} · up to {room.capacity} guests · {money(room.price)} / night</p>
-                </div>
-              )}
-              {!loadingRooms && available.map((r) => (
-                <div
-                  key={r.id}
-                  className={`bp-row ${room?.id === r.id ? 'selected' : ''}`}
-                  onClick={() => setRoom(r)}
-                >
-                  <ResponsiveImage src={roomPhoto(r.type)} sizes="100px" alt={r.name} loading="lazy" />
-                  <div className="min-w-0">
-                    <div className="bp-name">{r.name}</div>
-                    <div className="bp-meta">{r.room_number ? `Room ${r.room_number} · ` : ''}{r.type} · up to {r.capacity} guests · {r.size_sqm} m²</div>
+              {initialRoom && room ? (
+                <>
+                  <h4 className="font-serif text-[20px] text-cream mb-1">Confirm your room</h4>
+                  <p className="text-[13px] text-muted mb-4">
+                    {fmtDate(dates.checkIn)} → {fmtDate(dates.checkOut)} · {nights} night{nights > 1 ? 's' : ''} · {guests} guest{guests > 1 ? 's' : ''}
+                  </p>
+                  <div className="bp-row selected">
+                    <ResponsiveImage src={roomPhoto(room.type)} sizes="100px" alt={room.name} loading="lazy" />
+                    <div className="min-w-0">
+                      <div className="bp-name">{room.name}</div>
+                      <div className="bp-meta">{room.room_number ? `Room ${room.room_number} · ` : ''}{room.type} · up to {room.capacity} guests · {room.size_sqm} m²</div>
+                    </div>
+                    <div className="bp-price">{money(room.price)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span></div>
                   </div>
-                  <div className="bp-price">{money(r.price)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span></div>
-                </div>
-              ))}
+                </>
+              ) : (
+                <>
+                  <h4 className="font-serif text-[20px] text-cream mb-1">Choose your room</h4>
+                  <p className="text-[13px] text-muted mb-4">
+                    {fmtDate(dates.checkIn)} → {fmtDate(dates.checkOut)} · {nights} night{nights > 1 ? 's' : ''} · {guests} guest{guests > 1 ? 's' : ''}
+                  </p>
+                  {loadingRooms && <div className="spinner" />}
+                  {!loadingRooms && available.length === 0 && !room && (
+                    <div className="text-center py-8">
+                      <div className="font-serif text-[18px] text-cream">Sold out</div>
+                      <p className="text-[13px] text-muted mt-1">No rooms match those dates. Try shifting your stay.</p>
+                    </div>
+                  )}
+                  {!loadingRooms && available.length === 0 && room && (
+                    <div className="text-center py-8">
+                      <div className="font-serif text-[18px] text-cream">{room.name}</div>
+                      <p className="text-[13px] text-muted mt-1">{room.type} · up to {room.capacity} guests · {money(room.price)} / night</p>
+                    </div>
+                  )}
+                  {!loadingRooms && available.map((r) => (
+                    <div
+                      key={r.id}
+                      className={`bp-row ${room?.id === r.id ? 'selected' : ''}`}
+                      onClick={() => setRoom(r)}
+                    >
+                      <ResponsiveImage src={roomPhoto(r.type)} sizes="100px" alt={r.name} loading="lazy" />
+                      <div className="min-w-0">
+                        <div className="bp-name">{r.name}</div>
+                        <div className="bp-meta">{r.room_number ? `Room ${r.room_number} · ` : ''}{r.type} · up to {r.capacity} guests · {r.size_sqm} m²</div>
+                      </div>
+                      <div className="bp-price">{money(r.price)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span></div>
+                    </div>
+                  ))}
+                </>
+              )}
             </>
           )}
 
-          {/* STEP 3 — guest details + payment */}
+          {/* STEP 3 — guest details + confirm */}
           {step === 3 && room && (
             <>
               <h4 className="font-serif text-[20px] text-cream mb-4">Your details</h4>
@@ -202,9 +231,9 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                 <div className="row"><span>Guests</span><b>{guests}</b></div>
                 <div className="row total"><span>Total</span><b>{money(room.price * nights)}</b></div>
               </div>
-              <p className="mt-3 text-[11.5px] text-dim flex items-start gap-1.5">
-                {I.shield({ width: 13, height: 13 })}
-                <span>You'll pay securely on the next screen via card. No charge is made until you confirm there.</span>
+              <p className="mt-4 text-[11.5px] text-dim flex items-start gap-1.5">
+                {I.calendar({ width: 13, height: 13 })}
+                <span>Pay at the front desk when you check in. Bring your booking reference.</span>
               </p>
             </>
           )}
@@ -229,9 +258,9 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
               <button className="btn btn-ghost" onClick={() => setStep(2)} disabled={submitting}>Back</button>
               <button className="btn btn-gold" disabled={submitting} onClick={validateAndSubmit}>
                 {submitting ? (
-                  <span className="inline-flex items-center gap-2"><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2, margin: 0 }} /> Redirecting to secure checkout…</span>
+                  <span className="inline-flex items-center gap-2"><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2, margin: 0 }} /> Confirming booking…</span>
                 ) : (
-                  <>{I.shield({ width: 14, height: 14 })} Continue to payment</>
+                  <>{I.calendar({ width: 14, height: 14 })} Confirm booking</>
                 )}
               </button>
             </>

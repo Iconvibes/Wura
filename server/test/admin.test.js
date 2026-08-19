@@ -329,6 +329,31 @@ describe('rooms CRUD', () => {
 });
 
 describe('bookings admin endpoints', () => {
+  it('lists payments and returns a chronological timeline', async () => {
+    const room = await makeRoom({ name: 'Pay Suite', room_number: '501' });
+    const booking = await makeBooking(room._id, { ref: 'WUPAYHIST', payment_status: 'unpaid', total: 300 });
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ payment_status: 'paid', payment_note: 'Cash' })
+      .expect(200);
+
+    const res = await request(app)
+      .get('/api/admin/payments')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(res.body.events.length).toBeGreaterThanOrEqual(1);
+    const first = res.body.events.find((e) => e.ref === 'WUPAYHIST');
+    expect(first).toMatchObject({
+      action: 'paid',
+      by: 'admin',
+      total: 300,
+      guest_name: 'Jane Doe',
+      note: 'Cash',
+    });
+    expect(first.at).toBeTruthy();
+  });
+
   it('lists bookings and filters by payment status', async () => {
     const room = await makeRoom();
     const paid = await makeBooking(room._id, { ref: 'WUPAID01', payment_status: 'paid' });
@@ -375,5 +400,62 @@ describe('bookings admin endpoints', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'in_space' })
       .expect(400);
+  });
+
+  it('marks a pay-on-arrival booking as paid via PATCH', async () => {
+    const room = await makeRoom();
+    const booking = await makeBooking(room._id, { payment_status: 'unpaid' });
+
+    const res = await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ payment_status: 'paid' })
+      .expect(200);
+    expect(res.body.booking.payment_status).toBe('paid');
+    expect(res.body.booking.paid_at).toBeTruthy();
+  });
+
+  it('can update status and payment_status together', async () => {
+    const room = await makeRoom();
+    const booking = await makeBooking(room._id, { status: 'confirmed', payment_status: 'unpaid' });
+
+    const res = await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ status: 'checked_in', payment_status: 'paid' })
+      .expect(200);
+    expect(res.body.booking.status).toBe('checked_in');
+    expect(res.body.booking.payment_status).toBe('paid');
+  });
+
+  it('returns 400 when PATCH has no valid fields', async () => {
+    const room = await makeRoom();
+    const booking = await makeBooking(room._id);
+
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+      .expect(400);
+  });
+
+  it('records payment_history when marking a booking paid', async () => {
+    const room = await makeRoom();
+    const booking = await makeBooking(room._id, { payment_status: 'unpaid' });
+
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ payment_status: 'paid', payment_note: 'Collected cash at desk' })
+      .expect(200);
+
+    const lookup = await request(app).get(`/api/bookings/${booking.ref}`).expect(200);
+    expect(lookup.body.booking.payment_history).toHaveLength(1);
+    expect(lookup.body.booking.payment_history[0]).toMatchObject({
+      action: 'paid',
+      by: 'admin',
+      note: 'Collected cash at desk',
+    });
+    expect(lookup.body.booking.payment_history[0].at).toBeTruthy();
   });
 });

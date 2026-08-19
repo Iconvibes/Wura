@@ -136,6 +136,32 @@ describe('role-based access control', () => {
       .send({ status: 'cancelled' })
       .expect(200);
   });
+
+  it('lets staff mark a booking as paid but not refund it', async () => {
+    const room = await makeRoom();
+    const booking = await makeBooking(room._id, { payment_status: 'unpaid' });
+
+    // Staff can mark as paid at the front desk.
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ payment_status: 'paid' })
+      .expect(200);
+
+    // But staff cannot refund.
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ payment_status: 'refunded' })
+      .expect(403);
+
+    // Admin can refund.
+    await request(app)
+      .patch(`/api/admin/bookings/${booking._id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ payment_status: 'refunded' })
+      .expect(200);
+  });
 });
 
 describe('staff account management (admin only)', () => {

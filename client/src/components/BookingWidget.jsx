@@ -1,8 +1,9 @@
 import { I } from './Icons.jsx';
-import { addDays, todayISO } from '../api.jsx';
+import { addDays, todayISO, nightsBetween } from '../api.jsx';
 
 export default function BookingWidget({ dates, setDates, guests, setGuests, onSubmit }) {
   const today = todayISO();
+  const nights = nightsBetween(dates.checkIn, dates.checkOut) || 1;
 
   return (
     <form
@@ -30,17 +31,21 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
           </div>
         </div>
         <div className="field">
-          <label htmlFor="bw-checkout">Check-out</label>
+          <label htmlFor="bw-nights">Nights</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gold-500">{I.calendar({ width: 16, height: 16 })}</span>
-            <input
-              id="bw-checkout"
-              type="date"
-              value={dates.checkOut}
-              min={addDays(dates.checkIn, 1)}
-              onChange={(e) => setDates({ ...dates, checkOut: e.target.value })}
+            <select
+              id="bw-nights"
+              value={nights}
+              onChange={(e) => {
+                setDates({ ...dates, checkOut: addDays(dates.checkIn, Number(e.target.value)) });
+              }}
               className="pl-10"
-            />
+            >
+              {Array.from({ length: 14 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>{n} night{n > 1 ? 's' : ''}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="field">

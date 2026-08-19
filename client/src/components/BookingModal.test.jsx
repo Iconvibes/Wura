@@ -39,7 +39,6 @@ function renderModal(props = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Allow asserting the checkout redirect without real navigation.
   Object.defineProperty(window, 'location', { writable: true, value: { href: realLocation.href } });
   api.mockImplementation((path) => {
     if (path.startsWith('/api/rooms')) {
@@ -74,25 +73,23 @@ describe('BookingModal — step 1 (dates)', () => {
   });
 });
 
-describe('BookingModal — booking flow to checkout', () => {
+describe('BookingModal — booking flow', () => {
   it('preselects a room and starts at step 2 when initialRoom is given', async () => {
     renderModal({ initialRoom: roomA });
 
-    expect(screen.getByText('Choose your room')).toBeInTheDocument();
-    // Availability is fetched for the current dates.
-    await waitFor(() => {
-      expect(api).toHaveBeenCalledWith(expect.stringContaining('/api/rooms?checkIn=2026-09-01'));
-    });
+    expect(screen.getByText('Confirm your room')).toBeInTheDocument();
+    expect(screen.getByText('Deluxe Garden')).toBeInTheDocument();
+    expect(api).not.toHaveBeenCalledWith(expect.stringContaining('/api/rooms'));
   });
 
-  it('redirects to the hosted checkout after confirming details', async () => {
+  it('redirects to confirmation page after confirming details', async () => {
     const user = userEvent.setup();
     api.mockImplementation((path, opts) => {
       if (path.startsWith('/api/rooms')) return Promise.resolve({ rooms: [roomA, roomB] });
       if (path === '/api/bookings') {
         return Promise.resolve({
           booking: { ref: 'WUABC123', payment_status: 'unpaid' },
-          checkout_url: 'http://checkout.test/session_xyz',
+          checkout_url: 'http://localhost:5173/booking/success?ref=WUABC123',
         });
       }
       return Promise.reject(new Error(`Unexpected api call: ${path}`));
@@ -113,7 +110,7 @@ describe('BookingModal — booking flow to checkout', () => {
     await user.type(screen.getByPlaceholderText('e.g. Amara Okafor'), 'Jane Doe');
     await user.type(screen.getByPlaceholderText('you@example.com'), 'jane@example.com');
 
-    await user.click(screen.getByRole('button', { name: /Continue to payment/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm booking/i }));
 
     await waitFor(() => {
       expect(api).toHaveBeenCalledWith('/api/bookings', expect.objectContaining({ method: 'POST' }));
@@ -127,7 +124,7 @@ describe('BookingModal — booking flow to checkout', () => {
       check_out: '2026-09-03',
       guests: 2,
     });
-    expect(window.location.href).toBe('http://checkout.test/session_xyz');
+    expect(window.location.href).toBe('http://localhost:5173/booking/success?ref=WUABC123');
   });
 
   it('shows the selected room summary including the nightly total', async () => {
@@ -146,7 +143,7 @@ describe('BookingModal — booking flow to checkout', () => {
     renderModal({ initialRoom: roomA });
 
     await user.click(screen.getByRole('button', { name: 'Continue' }));
-    await user.click(screen.getByRole('button', { name: /Continue to payment/i }));
+    await user.click(screen.getByRole('button', { name: /Confirm booking/i }));
 
     expect(await screen.findByText('Please enter your full name.')).toBeInTheDocument();
     expect(screen.getByText('Please enter a valid email.')).toBeInTheDocument();

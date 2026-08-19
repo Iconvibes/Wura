@@ -27,6 +27,15 @@ const bookingSchema = new mongoose.Schema(
     },
     stripe_session_id: { type: String, default: null, index: true },
     paid_at: { type: Date, default: null },
+    payment_history: {
+      type: [{
+        action: { type: String, enum: ['paid', 'refunded', 'auto_cancelled'], required: true },
+        by: { type: String, default: 'system' },
+        at: { type: Date, default: Date.now },
+        note: { type: String, default: '' },
+      }],
+      default: [],
+    },
     notes: { type: String, default: '' },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }

@@ -25,7 +25,7 @@ export default function RoomDetail() {
   const [modalOpen, setModalOpen] = useState(false);
   const [dates, setDates] = useState(() => {
     const ci = todayISO();
-    return { checkIn: ci, checkOut: addDays(ci, 2) };
+    return { checkIn: ci, checkOut: addDays(ci, 1) };
   });
   const [guests, setGuests] = useState(2);
 

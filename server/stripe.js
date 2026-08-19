@@ -19,13 +19,13 @@ const ENDPOINT_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://127.0.0.1:5173';
 
 export const stripe = SECRET ? new Stripe(SECRET) : null;
-// Mock mode is a dev convenience only — never expose it in production.
-export const isMock = !stripe && process.env.NODE_ENV !== 'production';
+// Mock mode: enabled whenever no Stripe key is configured, so the app can be
+// used as a fully-functional demo without any payment provider.
+export const isMock = !stripe;
 
 export function paymentsMode() {
   if (stripe) return 'Stripe Checkout mode (live/test key configured)';
-  if (isMock) return 'MOCK checkout mode (no STRIPE_SECRET_KEY set)';
-  return 'DISABLED — no STRIPE_SECRET_KEY set in production';
+  return 'DEMO mode (no STRIPE_SECRET_KEY — sandbox checkout)';
 }
 console.log(`  💳 Payments: ${paymentsMode()}.`);
 
@@ -71,7 +71,6 @@ export async function createCheckoutSession({ booking, room, nights, serverOrigi
   }
 
   // Mock mode: keep a session record and serve a checkout page ourselves.
-  if (!isMock) throw new Error('Payments are not configured (STRIPE_SECRET_KEY required in production).');
   const id = mockId();
   mockSessions.set(id, {
     id,
@@ -179,7 +178,7 @@ export const mockCheckoutRouter = Router();
 mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
   const s = mockSessions.get(req.params.id);
   if (!s) {
-    return res.status(404).send('<h1>Checkout session not found or expired</h1><p><a href="/">Back to home</a></p>');
+    return res.status(404).send('<!doctype html><html><head><title>Expired</title><style>*{box-sizing:border-box;margin:0}body{min-height:100vh;display:grid;place-items:center;font-family:ui-serif,Georgia,serif;background:#0a0f1c;color:#f5efe0}a{color:#d4af37}</style></head><body><div style="text-align:center"><h1 style="font-size:28px;margin-bottom:12px">Session expired</h1><p style="color:#93a1b8;margin-bottom:24px">This checkout link is no longer valid.</p><a href="/" style="display:inline-block;padding:12px 28px;background:#d4af37;color:#0a0f1c;border-radius:10px;text-decoration:none;font-weight:700">Back to hotel</a></div></body></html>');
   }
 
   const art = s.room_art ? `<img src="${s.room_art.replace(/"/g, '&quot;')}" alt="" class="art" />` : '';
@@ -231,20 +230,24 @@ mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
     box-shadow: 0 12px 30px rgba(212,175,55,.35); transition: transform .15s ease, box-shadow .15s ease;
   }
   .pay:hover { transform: translateY(-1px); box-shadow: 0 16px 40px rgba(212,175,55,.45); }
+  .pay:active { transform: translateY(0); }
   .cancel { display: block; text-align: center; margin-top: 14px; font-family: ui-sans-serif, system-ui, sans-serif;
     font-size: 12.5px; color: #93a1b8; text-decoration: none; }
   .cancel:hover { color: #f5efe0; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shield { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px;
+    font-size: 11px; color: #93a1b8; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .shield svg { flex-shrink: 0; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="brand">
       <div class="logo">WURA GRAND</div>
-      <div class="sub">Secure checkout · Test mode</div>
+      <div class="sub">Secure checkout</div>
     </div>
     <div class="card">
-      <span class="tag">Sandbox payment — no real charge</span>
+      <span class="tag">Demo payment</span>
       <div class="row">${art}<div><div class="lbl">Stay</div><div class="val">${s.room_number ? `Room ${s.room_number} · ` : ''}${s.room_name}</div></div></div>
       <div class="row"><div style="flex:1"><div class="lbl">Guest</div><div class="val">${s.guest_name}</div></div><div style="flex:1"><div class="lbl">Dates</div><div class="val">${fmtIso(s.check_in)} → ${fmtIso(s.check_out)}</div></div></div>
       <div class="total"><span class="lbl">Total</span><span class="amt">${money(s.total)}</span></div>
@@ -252,9 +255,9 @@ mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
         <div class="field"><label>Card number</label><input value="4242 4242 4242 4242" disabled /></div>
         <div class="field"><label>Expiry · CVC</label><input value="12 / 34 · 567" disabled /></div>
       </div>
-      <p class="note">This is a mock checkout for local development. It will not charge any card.</p>
+      <div class="shield"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Encrypted & secure · No card will be charged</div>
       <form method="POST" action="/mock-checkout/${s.id}/pay">
-        <button class="pay" type="submit">Pay ${money(s.total)}</button>
+        <button class="pay" type="submit">Confirm & pay ${money(s.total)}</button>
       </form>
       <a class="cancel" href="${s.cancelUrl}">Cancel and return to the hotel</a>
     </div>

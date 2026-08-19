@@ -10,7 +10,7 @@ import { ADMIN_PATH } from './lib/adminPath.jsx';
 import {
   Rooms, RoomDetail, Experience, About, Gallery, Stories, Contact,
   NotFound, BookingSuccess, AdminLogin, AdminLayout,
-  Overview, FrontDesk, Inbox, Bookings, AdminRooms, AdminSettings,
+  Overview, FrontDesk, Inbox, Bookings, AdminRooms, AdminSettings, Payments,
 } from './lib/routes.jsx';
 // Home is the entry page — it must paint immediately, so it's eager (bundled
 // with the entry) rather than a lazy chunk. Everything else is split.
@@ -63,6 +63,7 @@ export default function App() {
               <Route path="front-desk" element={<FrontDesk />} />
               <Route path="inbox" element={<Inbox />} />
               <Route path="bookings" element={<Bookings />} />
+              <Route path="payments" element={<Payments />} />
               <Route path="rooms" element={<AdminRooms />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>

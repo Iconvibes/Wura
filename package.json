@@ -2,6 +2,7 @@
   "name": "wura-grand-hotel",
   "version": "2.0.0",
   "private": true,
+  "type": "module",
   "description": "Wura Grand Hotel — fullstack MERN booking app (MongoDB + Express + React + Node) with Vite + Tailwind CSS.",
   "scripts": {
     "setup": "npm --prefix server install && npm --prefix client install",

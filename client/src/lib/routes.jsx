@@ -25,6 +25,7 @@ export const loadInbox = () => import('../pages/admin/Inbox.jsx');
 export const loadBookings = () => import('../pages/admin/Bookings.jsx');
 export const loadAdminRooms = () => import('../pages/admin/Rooms.jsx');
 export const loadAdminSettings = () => import('../pages/admin/Settings.jsx');
+export const loadPayments = () => import('../pages/admin/Payments.jsx');
 
 export const Rooms = lazy(loadRooms);
 export const RoomDetail = lazy(loadRoomDetail);
@@ -43,6 +44,7 @@ export const Inbox = lazy(loadInbox);
 export const Bookings = lazy(loadBookings);
 export const AdminRooms = lazy(loadAdminRooms);
 export const AdminSettings = lazy(loadAdminSettings);
+export const Payments = lazy(loadPayments);
 
 // Public nav destinations → their chunk loaders, for hover/focus prefetch.
 export const ROUTE_LOADERS = {

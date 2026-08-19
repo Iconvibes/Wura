@@ -426,17 +426,44 @@ router.get('/bookings', requireRole('admin'), async (req, res) => {
 
 /* ------------------------- PATCH /bookings/:id ---------------------------- */
 // Role-aware: staff may only check guests in/out at the front desk; anything
-// else (confirming, cancelling) is admin-only.
+// else (confirming, cancelling) is admin-only. Optionally flip payment_status
+// (e.g. marking a pay-on-arrival booking as paid at the desk).
 router.patch('/bookings/:id', async (req, res) => {
   if (!validId(req.params.id)) return res.status(404).json({ error: 'Booking not found.' });
+  const { status, payment_status } = req.body || {};
   const allowed = ['confirmed', 'checked_in', 'checked_out', 'cancelled'];
-  if (!allowed.includes(req.body?.status)) return res.status(400).json({ error: 'Invalid status.' });
-  if (req.user.role !== 'admin' && !['checked_in', 'checked_out'].includes(req.body.status)) {
+  if (status && !allowed.includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+  if (status && req.user.role !== 'admin' && !['checked_in', 'checked_out'].includes(status)) {
     return res.status(403).json({ error: 'Admin access required for this action.' });
+  }
+  // Refunds are admin-only — staff may only mark bookings as paid at the desk.
+  if (payment_status === 'refunded' && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required for refunds.' });
+  }
+  const updates = {};
+  const pushOps = {};
+  const staffUser = req.user.username;
+  if (status) updates.status = status;
+  if (payment_status === 'paid') {
+    updates.payment_status = 'paid';
+    updates.paid_at = new Date();
+    pushOps.payment_history = { action: 'paid', by: staffUser, at: new Date(), note: String(req.body?.payment_note || '').trim() };
+  } else if (payment_status === 'refunded') {
+    updates.payment_status = 'refunded';
+    pushOps.payment_history = { action: 'refunded', by: staffUser, at: new Date(), note: String(req.body?.payment_note || '').trim() };
+  } else if (payment_status === 'unpaid') {
+    updates.payment_status = 'unpaid';
+  }
+  if (Object.keys(updates).length === 0 && Object.keys(pushOps).length === 0) {
+    return res.status(400).json({ error: 'Nothing to update.' });
+  }
+  const updateDoc = { ...updates };
+  if (Object.keys(pushOps).length > 0) {
+    updateDoc.$push = pushOps;
   }
   const booking = await Booking.findByIdAndUpdate(
     req.params.id,
-    { status: req.body.status },
+    updateDoc,
     { new: true }
   ).populate('room', 'name room_number floor type').lean();
   if (!booking) return res.status(404).json({ error: 'Booking not found.' });
@@ -506,6 +533,45 @@ router.delete('/messages/:id', async (req, res) => {
   const result = await Message.findByIdAndDelete(req.params.id);
   if (!result) return res.status(404).json({ error: 'Message not found.' });
   res.json({ ok: true });
+});
+
+/* ------------------------------ GET /payments ----------------------------- */
+// Global payment history: every booking that has payment_history entries,
+// newest first. Staff may read this; only the front desk + admin need it.
+router.get('/payments', async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const bookings = await Booking.find({ 'payment_history.0': { $exists: true } })
+      .populate('room', 'name room_number floor type')
+      .sort({ 'payment_history.at': -1 })
+      .limit(limit)
+      .lean();
+    // Flatten into a timeline: one entry per payment event, enriched with
+    // booking context so the client renders a clean chronological list.
+    const events = [];
+    for (const b of bookings) {
+      const room = b.room || {};
+      for (const h of (b.payment_history || []).slice().reverse()) {
+        events.push({
+          booking_id: String(b._id),
+          ref: b.ref,
+          guest_name: b.guest_name,
+          room_name: room.name || null,
+          room_number: room.room_number || null,
+          room_type: room.type || null,
+          total: b.total,
+          action: h.action,
+          by: h.by,
+          at: h.at,
+          note: h.note || '',
+        });
+      }
+    }
+    events.sort((a, b) => new Date(b.at) - new Date(a.at));
+    res.json({ events: events.slice(0, limit) });
+  } catch (e) {
+    next(e);
+  }
 });
 
 /* ------------------------------ POST /upload ------------------------------ */
