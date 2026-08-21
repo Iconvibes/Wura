@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
+import AIConcierge from '../components/AIConcierge.jsx';
 import Reveal from '../components/Reveal.jsx';
 import BookingWidget from '../components/BookingWidget.jsx';
 import RoomCard from '../components/RoomCard.jsx';
@@ -58,8 +59,14 @@ export default function Home() {
   }, [loadFeatured]);
 
   const openBooking = (room) => { setModalRoom(room); setModalOpen(true); };
-
   const heroParallax = useParallax(0.3, 0.2);
+  const [showTop, setShowTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <div id="top">
@@ -69,7 +76,6 @@ export default function Home() {
       <header className="relative min-h-[92vh] flex items-center overflow-hidden pt-28 pb-16">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div ref={heroParallax} className="absolute -inset-y-[20%] inset-x-0 parallax-layer">
-            {/* LCP image — eager, high priority, AVIF/WebP with JPEG fallback */}
             <ResponsiveImage src={HERO_IMAGE} sizes="100vw" alt="" eager fetchPriority="high" imgClassName="w-full h-full object-cover kenburns" />
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-navy-950/85 via-navy-950/45 to-navy-950/95" />
@@ -78,19 +84,21 @@ export default function Home() {
         </div>
 
         <div className="relative max-w-6xl mx-auto px-5 w-full">
-          <div className="max-w-2xl fade-up">
-            <span className="eyebrow">Five-star hospitality · City of gold</span>
-            <h1 className="font-serif text-[clamp(2.4rem,5.5vw,4rem)] leading-[1.08] text-cream mt-5">
-              Where every stay feels <em className="text-gold-400 not-italic font-serif" style={{ textShadow: '0 0 40px rgba(212,175,55,0.35)' }}>golden</em>.
-            </h1>
-            <p className="text-[15.5px] leading-relaxed text-muted mt-5 max-w-lg">
-              Wura Grand rises above the skyline with 50 rooms across five tiers, crafted for travellers who expect more — from sunrise espresso on your balcony to a late-night soak under the stars.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-7">
-              <Link to="/rooms" className="btn btn-gold">
-                {I.calendar({ width: 16, height: 16 })} Book a stay
-              </Link>
-              <Link to="/experience" className="btn btn-ghost">Explore the hotel</Link>
+          <div className="max-w-2xl">
+            <div className="hero-stagger">
+              <span className="eyebrow">Five-star hospitality · City of gold</span>
+              <h1 className="font-serif text-[clamp(2.4rem,5.5vw,4rem)] leading-[1.08] text-cream mt-5">
+                Where every stay feels <em className="text-gold-400 not-italic font-serif" style={{ textShadow: '0 0 40px rgba(212,175,55,0.35)' }}>golden</em>.
+              </h1>
+              <p className="text-[15.5px] leading-relaxed text-muted mt-5 max-w-lg">
+                Wura Grand rises above the skyline with 50 rooms across five tiers, crafted for travellers who expect more — from sunrise espresso on your balcony to a late-night soak under the stars.
+              </p>
+              <div className="flex flex-wrap gap-3 mt-7">
+                <Link to="/rooms" className="btn btn-gold">
+                  {I.calendar({ width: 16, height: 16 })} Book a stay
+                </Link>
+                <Link to="/experience" className="btn btn-ghost">Explore the hotel</Link>
+              </div>
             </div>
 
             <BookingWidget dates={dates} setDates={setDates} guests={guests} setGuests={setGuests}
@@ -105,11 +113,11 @@ export default function Home() {
 
         {/* floating trust badges over the banner */}
         <div className="hidden xl:flex absolute right-10 top-1/2 -translate-y-1/2 flex-col gap-4 pointer-events-none">
-          <div className="card px-5 py-3.5 flex items-center gap-3">
+          <div className="card px-5 py-3.5 flex items-center gap-3 backdrop-blur-sm">
             <span className="font-serif text-[26px] text-gold-400">4.9<small className="text-[13px] text-muted">/5</small></span>
             <span className="text-[10px] tracking-[1.5px] uppercase text-muted leading-tight">2,400+ guest<br />reviews</span>
           </div>
-          <div className="card px-5 py-3.5 flex items-center gap-3">
+          <div className="card px-5 py-3.5 flex items-center gap-3 backdrop-blur-sm">
             <span className="font-serif text-[26px] text-gold-400">#1</span>
             <span className="text-[10px] tracking-[1.5px] uppercase text-muted leading-tight">Luxury hotel<br />· 2026</span>
           </div>
@@ -126,6 +134,11 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ========================= WURA DIVIDER ============================ */}
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <div className="wura-divider"><span className="w-medallion">W</span></div>
       </div>
 
       {/* ========================= FEATURED ROOMS ========================= */}
@@ -164,18 +177,19 @@ export default function Home() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
           {AMENITIES.slice(0, 3).map(([icon, title, desc], i) => (
             <Reveal key={title} variant="left" delay={i % 3}>
-              <div className="card p-0 overflow-hidden h-full group hover:border-gold-500/40 hover:-translate-y-1 transition-all duration-300">
-                <div className="relative h-36 overflow-hidden">
+              <div className="card card-enhanced p-0 overflow-hidden h-full group exp-card">
+                <div className="relative h-48 overflow-hidden">
                   <ParallaxImage src={EXPERIENCE_PHOTOS[icon]} alt={title} speed={0.12}
-                    imgClassName="transition-transform duration-700 group-hover:scale-105" />
+                    imgClassName="transition-transform duration-700 group-hover:scale-105 exp-card-image" />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/20 to-transparent" />
-                  <div className="absolute left-4 bottom-3 w-11 h-11 rounded-xl grid place-items-center text-gold-400 bg-navy-950/70 border border-gold-500/30 backdrop-blur-sm">
-                    {Icon({ name: icon, size: 20 })}
+                  <div className="absolute inset-0 bg-gradient-to-r from-navy-950/40 to-transparent exp-card-overlay" />
+                  <div className="absolute left-4 bottom-4 w-12 h-12 rounded-xl grid place-items-center text-gold-400 bg-navy-950/70 border border-gold-500/30 backdrop-blur-sm">
+                    {Icon({ name: icon, size: 22 })}
                   </div>
                 </div>
-                <div className="p-6 pt-4">
-                  <h3 className="font-serif text-[18px] text-cream">{title}</h3>
-                  <p className="text-[13.5px] text-muted leading-relaxed mt-2">{desc}</p>
+                <div className="p-6 pt-5">
+                  <h3 className="font-serif text-[19px] text-cream">{title}</h3>
+                  <p className="text-[13.5px] text-muted leading-relaxed mt-2.5">{desc}</p>
                 </div>
               </div>
             </Reveal>
@@ -214,10 +228,11 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-5 mt-10">
           {STORIES.map(([init, name, tag, quote], i) => (
             <Reveal key={name} variant="flip" delay={i}>
-              <div className="card p-6 h-full flex flex-col">
-                <div className="text-gold-400 tracking-[4px] text-sm">★★★★★</div>
-                <blockquote className="text-[14px] leading-relaxed text-cream/90 mt-4 flex-1">"{quote}"</blockquote>
-                <div className="flex items-center gap-3 mt-5 pt-4 border-t border-white/5">
+              <div className="card card-enhanced p-6 pt-8 h-full flex flex-col relative">
+                <span className="quote-mark" aria-hidden="true">&ldquo;</span>
+                <div className="text-gold-400 tracking-[4px] text-sm relative z-10">★★★★★</div>
+                <blockquote className="text-[14px] leading-relaxed text-cream/90 mt-3 flex-1 relative z-10 font-serif italic">{quote}</blockquote>
+                <div className="flex items-center gap-3 mt-5 pt-4 border-t border-white/5 relative z-10">
                   <div className="fd-guest-avatar !w-10 !h-10 !text-[15px]">{init}</div>
                   <div>
                     <div className="text-[14px] font-bold text-cream">{name}</div>
@@ -237,6 +252,9 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-5 pt-20">
         <Reveal variant="zoom">
           <div className="card p-10 md:p-14 text-center relative overflow-hidden">
+            {/* Ambient glow orbs */}
+            <div className="cta-glow" style={{ top: '-60px', left: '15%' }} aria-hidden="true" />
+            <div className="cta-glow" style={{ bottom: '-80px', right: '10%', animationDelay: '2s' }} aria-hidden="true" />
             <div className="absolute inset-0 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(212,175,55,0.12),transparent_70%)] pointer-events-none" />
             <span className="eyebrow">Reserve</span>
             <h2 className="font-serif text-[clamp(1.9rem,4vw,2.8rem)] text-cream mt-4">Your golden room is waiting</h2>
@@ -248,6 +266,16 @@ export default function Home() {
 
       <Footer />
 
+      {/* Scroll to top */}
+      <button
+        className={`scroll-top-btn ${showTop ? 'visible' : ''}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Scroll to top"
+      >
+        {I.arrowUp({ width: 18, height: 18 })}
+      </button>
+
+      <AIConcierge />
       <BookingModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -23,7 +23,7 @@ const esc = (s) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-const money = (n) => `$${Number(n).toLocaleString('en-US')}`;
+const money = (n) => `\u20a6${Number(n).toLocaleString('en-US')}`;
 
 function ldHotel(origin) {
   return {
@@ -71,7 +71,7 @@ function ldRoom(room, origin) {
       '@type': 'Offer',
       name: `${room.name} — nightly rate`,
       price: String(Math.round(room.price)),
-      priceCurrency: 'USD',
+      priceCurrency: 'NGN',
       availability: 'https://schema.org/InStock',
       url,
       priceValidUntil: addDays(today(), 365),

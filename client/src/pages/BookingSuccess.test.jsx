@@ -45,7 +45,7 @@ describe('BookingSuccess', () => {
     expect(await screen.findByText("You're booked, Jane!")).toBeInTheDocument();
     expect(screen.getByText('WUPAID42')).toBeInTheDocument();
     expect(screen.getByText('Pay at front desk')).toBeInTheDocument();
-    expect(screen.getByText('$398')).toBeInTheDocument();
+    expect(screen.getByText('₦398')).toBeInTheDocument();
     // Should fetch the booking by ref — no payment/complete call.
     expect(api).toHaveBeenCalledWith('/api/bookings/WUPAID42');
   });

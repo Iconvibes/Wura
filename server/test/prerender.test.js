@@ -31,7 +31,7 @@ describe('prerender for non-JS crawlers', () => {
     const res = await request(app).get('/rooms').set('User-Agent', GOOGLEBOT).expect(200);
     expect(res.text).toContain('<h1>Rooms &amp; Suites</h1>');
     expect(res.text).toContain('Deluxe Garden');
-    expect(res.text).toContain('$199');
+    expect(res.text).toContain('\u20a6199');
     expect(res.text).toContain('/rooms/Deluxe%20Garden');
   });
 

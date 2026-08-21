@@ -41,8 +41,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   Object.defineProperty(window, 'location', { writable: true, value: { href: realLocation.href } });
   api.mockImplementation((path) => {
+    if (path.startsWith('/api/rooms') && path.includes('/price')) {
+      return Promise.resolve({ perNight: 199, basePrice: 199, total: 398, adjustments: [], minNights: 0 });
+    }
     if (path.startsWith('/api/rooms')) {
       return Promise.resolve({ rooms: [roomA, roomB] });
+    }
+    if (path === '/api/upsells') {
+      return Promise.resolve({ products: [] });
     }
     return Promise.reject(new Error(`Unexpected api call: ${path}`));
   });
@@ -79,13 +85,20 @@ describe('BookingModal — booking flow', () => {
 
     expect(screen.getByText('Confirm your room')).toBeInTheDocument();
     expect(screen.getByText('Deluxe Garden')).toBeInTheDocument();
-    expect(api).not.toHaveBeenCalledWith(expect.stringContaining('/api/rooms'));
+    // Dynamic pricing API call is expected when initialRoom is given
+    expect(api).toHaveBeenCalledWith(expect.stringContaining('/api/rooms'));
+    // But the room LIST endpoint should not be called
+    expect(api).not.toHaveBeenCalledWith(expect.stringMatching(/^\/api\/rooms\?/));
   });
 
   it('redirects to confirmation page after confirming details', async () => {
     const user = userEvent.setup();
     api.mockImplementation((path, opts) => {
+      if (path.startsWith('/api/rooms') && path.includes('/price')) {
+        return Promise.resolve({ perNight: 199, basePrice: 199, total: 398, adjustments: [], minNights: 0 });
+      }
       if (path.startsWith('/api/rooms')) return Promise.resolve({ rooms: [roomA, roomB] });
+      if (path === '/api/upsells') return Promise.resolve({ products: [] });
       if (path === '/api/bookings') {
         return Promise.resolve({
           booking: { ref: 'WUABC123', payment_status: 'unpaid' },
@@ -135,7 +148,7 @@ describe('BookingModal — booking flow', () => {
 
     expect(screen.getByText('Your details')).toBeInTheDocument();
     // 2 nights × $199
-    expect(screen.getByText('$398')).toBeInTheDocument();
+    expect(screen.getByText('₦398')).toBeInTheDocument();
   });
 
   it('validates guest details before creating the booking', async () => {

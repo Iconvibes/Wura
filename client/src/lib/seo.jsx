@@ -83,7 +83,7 @@ export function roomOfferLD(room) {
       '@type': 'Offer',
       name: `${room.name} — nightly rate`,
       price: String(Math.round(room.price)),
-      priceCurrency: 'USD',
+      priceCurrency: 'NGN',
       availability: 'https://schema.org/InStock',
       url,
       priceValidUntil: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),

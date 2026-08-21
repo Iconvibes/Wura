@@ -12,6 +12,8 @@ const NAV_ALL = [
   [`${ADMIN_PATH}/bookings`, 'bookings', 'Bookings', 'bookings'],
   [`${ADMIN_PATH}/payments`, 'payments', 'Payments', 'shield'],
   [`${ADMIN_PATH}/rooms`, 'rooms', 'Rooms & Rates', 'room'],
+  [`${ADMIN_PATH}/pricing`, 'pricing', 'Dynamic Pricing', 'chart'],
+  [`${ADMIN_PATH}/upsells`, 'upsells', 'Upsells', 'star'],
   [`${ADMIN_PATH}/inbox`, 'inbox', 'Inbox', 'mail'],
   [`${ADMIN_PATH}/settings`, 'settings', 'Settings', 'shield'],
 ];
@@ -21,7 +23,7 @@ const NAV_BY_ROLE = {
   admin: NAV_ALL,
   staff: NAV_ALL.filter(([, key]) => key === 'front-desk' || key === 'inbox'),
 };
-const ADMIN_ONLY_VIEWS = new Set(['overview', 'bookings', 'payments', 'rooms', 'settings']);
+const ADMIN_ONLY_VIEWS = new Set(['overview', 'bookings', 'payments', 'rooms', 'settings', 'pricing', 'upsells', 'housekeeping', 'guest-messages', 'loyalty']);
 const ROLE_LABELS = { admin: 'Administrator', staff: 'Front desk staff' };
 
 // Per-view tab labels so the staff portal never shows the guest home title.
@@ -32,6 +34,11 @@ const VIEW_TITLES = {
   payments: 'Payment History',
   rooms: 'Rooms & Rates',
   inbox: 'Inbox',
+  pricing: 'Dynamic Pricing',
+  upsells: 'Upsells',
+  housekeeping: 'Housekeeping',
+  'guest-messages': 'Guest Messages',
+  loyalty: 'Loyalty Program',
   settings: 'Settings',
 };
 

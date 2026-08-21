@@ -813,4 +813,148 @@ router.delete('/users/:id', requireRole('admin'), async (req, res, next) => {
   }
 });
 
+
+/* ======================== GUEST MESSAGING (admin) ======================== */
+
+import GuestMessage from '../models/GuestMessage.js';
+
+router.get('/messages/guest', async (req, res, next) => {
+  try {
+    const status = req.query.status;
+    const q = {};
+    if (status) q.status = status;
+    const threads = await GuestMessage.find(q).sort({ updatedAt: -1 }).lean();
+    const unreadTotal = threads.reduce((s, t) => s + (t.unread_staff || 0), 0);
+    res.json({
+      threads: threads.map((t) => ({
+        ...t,
+        id: String(t._id),
+        booking_id: String(t.booking),
+        last_message: t.messages.length > 0 ? t.messages[t.messages.length - 1] : null,
+        message_count: t.messages.length,
+      })),
+      unread: unreadTotal,
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/messages/guest/:threadId', async (req, res, next) => {
+  try {
+    if (!validId(req.params.threadId)) return res.status(404).json({ error: 'Thread not found.' });
+    const { text } = req.body || {};
+    if (!text || !text.trim()) return res.status(400).json({ error: 'Message text is required.' });
+    const thread = await GuestMessage.findById(req.params.threadId);
+    if (!thread) return res.status(404).json({ error: 'Thread not found.' });
+    thread.messages.push({ sender: 'staff', sender_name: req.user.username, text: text.trim(), read: false });
+    thread.unread_guest = (thread.unread_guest || 0) + 1;
+    await thread.save();
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+router.patch('/messages/guest/:threadId/status', async (req, res, next) => {
+  try {
+    if (!validId(req.params.threadId)) return res.status(404).json({ error: 'Thread not found.' });
+    const { status } = req.body || {};
+    if (!['open', 'resolved', 'archived'].includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+    await GuestMessage.findByIdAndUpdate(req.params.threadId, { status });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+router.post('/messages/guest/:threadId/read', async (req, res, next) => {
+  try {
+    if (!validId(req.params.threadId)) return res.status(404).json({ error: 'Thread not found.' });
+    const thread = await GuestMessage.findById(req.params.threadId);
+    if (!thread) return res.status(404).json({ error: 'Thread not found.' });
+    thread.messages.forEach((m) => { if (m.sender === 'guest') m.read = true; });
+    thread.unread_staff = 0;
+    await thread.save();
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+/* ========================= HOUSEKEEPING (admin) =========================== */
+
+import Housekeeping from '../models/Housekeeping.js';
+
+router.get('/housekeeping', async (req, res, next) => {
+  try {
+    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    let tasks = await Housekeeping.find({ date }).populate('room', 'name room_number type floor status').sort({ floor: 1, room_number: 1 }).lean();
+    if (tasks.length === 0) {
+      const rooms = await Room.find({ status: 'active' }).lean();
+      const insert = rooms.map((r) => ({ room: r._id, date, status: 'dirty', room_name: r.name, room_number: r.room_number, room_type: r.type, floor: r.floor || 0 }));
+      if (insert.length > 0) await Housekeeping.insertMany(insert, { ordered: false }).catch(() => {});
+      tasks = await Housekeeping.find({ date }).populate('room', 'name room_number type floor status').sort({ floor: 1, room_number: 1 }).lean();
+    }
+    res.json({ tasks, date });
+  } catch (e) { next(e); }
+});
+
+router.patch('/housekeeping/:id', async (req, res, next) => {
+  try {
+    if (!validId(req.params.id)) return res.status(404).json({ error: 'Task not found.' });
+    const task = await Housekeeping.findById(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found.' });
+    const b = req.body || {};
+    if (b.status) {
+      if (!['dirty', 'in_progress', 'clean', 'inspected'].includes(b.status)) return res.status(400).json({ error: 'Invalid status.' });
+      task.status = b.status;
+      if (b.status === 'in_progress' && !task.started_at) task.started_at = new Date();
+      if (b.status === 'clean' || b.status === 'inspected') task.completed_at = new Date();
+    }
+    if (b.assigned_to !== undefined) task.assigned_to = b.assigned_to;
+    if (b.notes !== undefined) task.notes = b.notes;
+    if (b.priority) task.priority = b.priority;
+    await task.save();
+    res.json({ task: { ...task.toObject(), id: String(task._id) } });
+  } catch (e) { next(e); }
+});
+
+/* ========================= LOYALTY (admin) ================================ */
+
+import LoyaltyMember from '../models/LoyaltyMember.js';
+
+router.get('/loyalty', requireRole('admin'), async (req, res, next) => {
+  try {
+    const members = await LoyaltyMember.find().sort({ points: -1 }).lean();
+    res.json({ members: members.map((m) => ({ ...m, id: String(m._id) })) });
+  } catch (e) { next(e); }
+});
+
+router.patch('/loyalty/:id', requireRole('admin'), async (req, res, next) => {
+  try {
+    if (!validId(req.params.id)) return res.status(404).json({ error: 'Member not found.' });
+    const member = await LoyaltyMember.findById(req.params.id);
+    if (!member) return res.status(404).json({ error: 'Member not found.' });
+    const b = req.body || {};
+    if (b.points !== undefined) member.points = Number(b.points);
+    if (b.tier) member.tier = b.tier;
+    if (b.preferences) Object.assign(member.preferences, b.preferences);
+    if (b.guest_name) member.guest_name = b.guest_name;
+    await member.save();
+    res.json({ member: { ...member.toObject(), id: String(member._id) } });
+  } catch (e) { next(e); }
+});
+
+/* ========================= REVENUE STATS (admin) ========================== */
+
+router.get('/revenue-stats', requireRole('admin'), async (req, res, next) => {
+  try {
+    const todayStr = today();
+    const activeRooms = await Room.countDocuments({ status: 'active' });
+    const month = todayStr.slice(0, 7);
+    const monthBookings = await Booking.find({ status: { $ne: 'cancelled' }, check_in: { $gte: month + '-01', $lte: month + '-31' } }).select('total check_in check_out').lean();
+    const adr = monthBookings.length > 0 ? Math.round(monthBookings.reduce((s, b) => { const n = Math.round((Date.parse(b.check_out) - Date.parse(b.check_in)) / 86400000); return s + (b.total / Math.max(n, 1)); }, 0) / monthBookings.length) : 0;
+    const bookedRooms = await Booking.distinct('room', { status: { $ne: 'cancelled' }, check_in: { $lte: addDays(todayStr, 1) }, check_out: { $gt: todayStr } });
+    const occupancy = activeRooms > 0 ? Math.round((bookedRooms.length / activeRooms) * 100) : 0;
+    const revpar = Math.round(adr * occupancy / 100);
+    const lastMonth = addDays(todayStr, -30);
+    const lastMonthBookings = await Booking.countDocuments({ check_in: { $gte: lastMonth, $lte: todayStr }, status: { $ne: 'cancelled' } });
+    const nextMonthBookings = await Booking.countDocuments({ check_in: { $gte: todayStr, $lte: addDays(todayStr, 30) }, status: { $ne: 'cancelled' } });
+    res.json({ adr, revpar, occupancy, active_rooms: activeRooms, booking_pace: { last_30_days: lastMonthBookings, next_30_days: nextMonthBookings, trend: nextMonthBookings > lastMonthBookings ? 'up' : nextMonthBookings < lastMonthBookings ? 'down' : 'flat' } });
+  } catch (e) { next(e); }
+});
+
 export default router;

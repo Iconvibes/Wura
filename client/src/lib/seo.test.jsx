@@ -37,7 +37,7 @@ describe('roomOfferLD', () => {
     expect(ld.offers).toMatchObject({
       '@type': 'Offer',
       price: '179',
-      priceCurrency: 'USD',
+      priceCurrency: 'NGN',
       availability: 'https://schema.org/InStock',
       businessFunction: 'https://schema.org/LeaseOut',
     });

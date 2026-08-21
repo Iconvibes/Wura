@@ -20,10 +20,11 @@ export default function Experience() {
         {AMENITIES.map(([icon, title, desc], i) => {
           const left = i % 2 === 0;
           const photo = (
-            <div className="relative rounded-2xl overflow-hidden border border-gold-500/25 group h-64 md:h-80">
+            <div className="relative rounded-2xl overflow-hidden border border-gold-500/25 group h-64 md:h-80 card-enhanced">
               <ParallaxImage src={EXPERIENCE_PHOTOS[icon]} alt={title} speed={0.12}
                 imgClassName="transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-navy-950/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
               <div className="absolute left-4 bottom-4 w-12 h-12 rounded-xl grid place-items-center text-gold-400 bg-navy-950/70 border border-gold-500/30 backdrop-blur-sm pop-chip">
                 {Icon({ name: icon, size: 22 })}
               </div>

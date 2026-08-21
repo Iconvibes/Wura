@@ -224,7 +224,7 @@ export default function Rooms() {
                   </select>
                 </div>
                 <div className="form-field">
-                  <label>Price / night (USD)</label>
+                  <label>Price / night (₦)</label>
                   <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
                 </div>
                 <div className="form-field">

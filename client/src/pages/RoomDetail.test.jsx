@@ -38,7 +38,7 @@ describe('RoomDetail page', () => {
 
     expect(await screen.findByRole('heading', { name: 'Deluxe Garden' })).toBeInTheDocument();
     expect(api).toHaveBeenCalledWith('/api/rooms/r1');
-    expect(screen.getByText('$199')).toBeInTheDocument();
+    expect(screen.getByText('₦199')).toBeInTheDocument();
     expect(screen.getByText('Garden view')).toBeInTheDocument();
     expect(screen.getByText('Espresso bar')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /reserve this room/i })).toBeInTheDocument();

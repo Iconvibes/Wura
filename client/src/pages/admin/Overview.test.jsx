@@ -44,7 +44,7 @@ describe('Overview dashboard', () => {
     expect(screen.getByText('Booking status')).toBeInTheDocument();
 
     // KPI values
-    expect(screen.getByText('$2,400')).toBeInTheDocument();
+    expect(screen.getByText('₦2,400')).toBeInTheDocument();
     expect(screen.getByText('In-house now')).toBeInTheDocument();
 
     // Donut legend + status rows

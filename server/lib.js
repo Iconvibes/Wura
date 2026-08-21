@@ -14,7 +14,7 @@ export function nightsBetween(checkIn, checkOut) {
   return Math.round((Date.parse(checkOut) - Date.parse(checkIn)) / 86400000);
 }
 
-export const money = (n) => `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+export const money = (n) => `\u20a6${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 

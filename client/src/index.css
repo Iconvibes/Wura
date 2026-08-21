@@ -2,24 +2,25 @@
 
 /* ------------------------------- theme tokens ------------------------------ */
 @theme {
-  --color-navy-950: #060a14;
-  --color-navy-900: #0a1128;
+  --color-navy-950: #080c18;
+  --color-navy-900: #0c1225;
   --color-navy-850: #0d1530;
   --color-navy-800: #111a3a;
   --color-navy-700: #182449;
   --color-gold-300: #e9cd6e;
-  --color-gold-400: #e0c05a;
-  --color-gold-500: #d4af37;
+  --color-gold-400: #c9a84c;
+  --color-gold-500: #b8942e;
   --color-gold-600: #b8942a;
   --color-gold-700: #94751f;
-  --color-cream: #f4ead8;
+  --color-cream: #f0e6d3;
   --color-muted: #9aa4c0;
   --color-dim: #7d89ab; /* ≥4.5:1 on navy-950 (was #5f6a8a / 3.56:1 — failed WCAG AA) */
   --color-red-soft: #f87171;
   --color-green-soft: #4ade80;
-  --font-serif: "Georgia", "Times New Roman", serif;
-  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Cormorant Garamond", "Georgia", serif;
+  --font-sans: "Outfit", "Segoe UI", sans-serif;
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* --------------------------------- base ----------------------------------- */
@@ -135,6 +136,38 @@ input[type="date"] { color-scheme: dark; }
 }
 .form-field input.invalid, .form-field textarea.invalid { border-color: var(--color-red-soft); }
 .err { color: var(--color-red-soft); font-size: 12px; min-height: 14px; }
+
+
+/* -------------------------- wura divider (signature) ----------------------- */
+/* The brass medallion divider: a W monogram flanked by thin lines.
+   Used between major page sections as the visual throughline. */
+.wura-divider {
+  display: flex; align-items: center; gap: 16px;
+  max-width: 280px; margin: 0 auto;
+  color: var(--color-gold-500);
+}
+.wura-divider::before, .wura-divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 148, 46, 0.4), transparent);
+}
+.wura-divider .w-medallion {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; flex-shrink: 0;
+  font-family: var(--font-serif); font-weight: 600; font-size: 16px;
+  color: var(--color-gold-400);
+  background: linear-gradient(135deg, rgba(184, 148, 46, 0.12), rgba(184, 148, 46, 0.04));
+  border: 1px solid rgba(184, 148, 46, 0.3);
+  box-shadow: 0 0 20px rgba(184, 148, 46, 0.1);
+  transition: box-shadow 0.4s var(--ease-soft);
+}
+.wura-divider:hover .w-medallion {
+  box-shadow: 0 0 30px rgba(184, 148, 46, 0.2);
+}
+
+/* Wider variant for full-width section breaks */
+.wura-divider-wide {
+  max-width: 100%; padding: 0 5%;
+}
 
 /* -------------------------------- spinner --------------------------------- */
 .spinner {
@@ -523,6 +556,127 @@ html.vt-direction-back ::view-transition-new(root) {
 .pop-chip { opacity: 0; transform: scale(0.6); transition: opacity 0.4s var(--ease-soft), transform 0.4s var(--ease-soft); transition-delay: 0.35s; }
 .reveal.visible .pop-chip { opacity: 1; transform: scale(1); }
 
+/* -------------------------- enhanced room card ---------------------------- */
+/* Shimmer line sweeps across the image on hover */
+.room-shimmer {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none; border-radius: inherit;
+}
+.room-shimmer::after {
+  content: ""; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.12), transparent);
+  transform: skewX(-15deg); transition: left 0.6s var(--ease-soft);
+}
+.group:hover .room-shimmer::after { left: 120%; }
+
+/* Price floating badge on room card */
+.room-price-badge {
+  position: absolute; bottom: 12px; right: 12px;
+  background: rgba(6, 10, 20, 0.82); backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 10px;
+  padding: 6px 12px; display: flex; align-items: baseline; gap: 4px;
+  transition: transform 0.3s var(--ease-soft), box-shadow 0.3s;
+}
+.group:hover .room-price-badge {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(212, 175, 55, 0.15);
+}
+
+/* Enhanced card hover — deeper shadow + subtle gold border glow */
+.card-enhanced {
+  transition: transform 0.35s var(--ease-soft), box-shadow 0.35s var(--ease-soft), border-color 0.35s;
+}
+.card-enhanced:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+/* ------------------------ glass morphism booking -------------------------- */
+.glass-card {
+  background: rgba(12, 18, 37, 0.55);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ---------------------- editorial blockquote marks ------------------------ */
+.quote-mark {
+  font-family: var(--font-serif); font-size: 72px; line-height: 1;
+  color: rgba(212, 175, 55, 0.2); position: absolute; top: -8px; left: -4px;
+  pointer-events: none; user-select: none;
+}
+
+/* ---------------------- experience card enhancement ----------------------- */
+.exp-card-image {
+  transition: transform 0.8s var(--ease-soft);
+}
+.exp-card:hover .exp-card-image {
+  transform: scale(1.06);
+}
+.exp-card-overlay {
+  opacity: 0; transition: opacity 0.4s var(--ease-soft);
+}
+.exp-card:hover .exp-card-overlay {
+  opacity: 1;
+}
+
+/* ------------------------ scroll-to-top button --------------------------- */
+.scroll-top-btn {
+  position: fixed; bottom: 80px; right: 24px; z-index: 45;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  background: rgba(12, 18, 37, 0.8); backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--color-gold-400);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.3s var(--ease-soft), transform 0.3s var(--ease-soft), background 0.2s;
+  pointer-events: none;
+}
+.scroll-top-btn.visible {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+.scroll-top-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--color-gold-400);
+  transform: translateY(-2px);
+}
+
+/* ---------------------- hero staggered text reveal ------------------------ */
+.hero-stagger > * {
+  opacity: 0; transform: translateY(20px);
+  animation: heroReveal 0.7s var(--ease-soft) forwards;
+}
+.hero-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-stagger > *:nth-child(2) { animation-delay: 0.25s; }
+.hero-stagger > *:nth-child(3) { animation-delay: 0.4s; }
+.hero-stagger > *:nth-child(4) { animation-delay: 0.55s; }
+.hero-stagger > *:nth-child(5) { animation-delay: 0.7s; }
+.hero-stagger > *:nth-child(6) { animation-delay: 0.85s; }
+.hero-stagger > *:nth-child(7) { animation-delay: 1.0s; }
+@keyframes heroReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-stagger > * { animation: none; opacity: 1; transform: none; }
+}
+
+/* ------------------------- CTA ambient glow ------------------------------- */
+.cta-glow {
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15), transparent 70%);
+  filter: blur(40px); pointer-events: none;
+  animation: glowPulse 4s ease-in-out infinite alternate;
+}
+@keyframes glowPulse {
+  from { opacity: 0.5; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-glow { animation: none; opacity: 0.7; }
+}
+
 /* ----------------------------- page lightbox ------------------------------- */
 .lightbox {
   position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
@@ -593,4 +747,40 @@ html.vt-direction-back ::view-transition-new(root) {
   .kenburns { animation: none; }
   .room-art { transform: none; transition: none; }
   .parallax-layer, .parallax-img-inner { will-change: auto; }
+}
+
+/* ========================= AI Concierge Animations ========================= */
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(201, 168, 76, 0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chat-message {
+  animation: message-appear 0.3s ease-out;
 }

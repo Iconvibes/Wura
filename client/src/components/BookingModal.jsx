@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { api, money, fmtDate, addDays, nightsBetween, todayISO } from '../api.jsx';
 import { I } from './Icons.jsx';
 import { toast } from './Toast.jsx';
@@ -17,6 +17,14 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Dynamic pricing
+  const [dynamicPrice, setDynamicPrice] = useState(null);
+  const [loadingPrice, setLoadingPrice] = useState(false);
+
+  // Upsell products
+  const [upsells, setUpsells] = useState([]);
+  const [selectedUpsells, setSelectedUpsells] = useState([]);
+
   // Reset state each time the modal opens with a new room.
   useEffect(() => {
     if (open) {
@@ -27,6 +35,8 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
       setForm({ name: '', email: '', phone: '', notes: '' });
       setErrors({});
       setSubmitting(false);
+      setDynamicPrice(null);
+      setSelectedUpsells([]);
     }
   }, [open, initialRoom]);
 
@@ -40,6 +50,32 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
     }
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
   }, [open, onClose]);
+
+  // Fetch upsell products when modal opens
+  useEffect(() => {
+    if (!open) return;
+    api('/api/upsells')
+      .then(({ products }) => setUpsells(products || []))
+      .catch(() => setUpsells([]));
+  }, [open]);
+
+  // Fetch dynamic price when room is selected
+  const fetchDynamicPrice = useCallback(async (roomId) => {
+    if (!roomId || !dates.checkIn || !dates.checkOut) return;
+    setLoadingPrice(true);
+    try {
+      const result = await api('/api/rooms/' + roomId + '/price?checkIn=' + dates.checkIn + '&checkOut=' + dates.checkOut + '&guests=' + guests);
+      setDynamicPrice(result);
+    } catch {
+      setDynamicPrice(null);
+    } finally {
+      setLoadingPrice(false);
+    }
+  }, [dates.checkIn, dates.checkOut, guests]);
+
+  useEffect(() => {
+    if (room && step === 2) fetchDynamicPrice(room.id);
+  }, [room, step, fetchDynamicPrice]);
 
   // When we reach step 2 without a pre-selected room, fetch all available rooms.
   // If initialRoom was provided (clicked "Reserve" on a specific room page),
@@ -58,6 +94,16 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
 
   if (!open) return null;
   const nights = nightsBetween(dates.checkIn, dates.checkOut) || 1;
+
+  // Calculate upsell total
+  const upsellTotal = selectedUpsells.reduce((sum, u) => {
+    let price = u.price;
+    if (u.multiply_by_nights) price *= nights;
+    if (u.multiply_by_guests) price *= guests;
+    return sum + price;
+  }, 0);
+
+  const displayPrice = dynamicPrice ? dynamicPrice.perNight : (room ? room.price : 0);
 
   const validateAndSubmit = async () => {
     const errs = {};
@@ -160,7 +206,18 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                       <div className="bp-name">{room.name}</div>
                       <div className="bp-meta">{room.room_number ? `Room ${room.room_number} · ` : ''}{room.type} · up to {room.capacity} guests · {room.size_sqm} m²</div>
                     </div>
-                    <div className="bp-price">{money(room.price)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span></div>
+                    <div className="bp-price">
+                      {loadingPrice ? (
+                        <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                      ) : (
+                        <>
+                          {dynamicPrice && dynamicPrice.basePrice !== dynamicPrice.perNight && (
+                            <span className="line-through text-dim text-[12px] mr-1">{money(dynamicPrice.basePrice)}</span>
+                          )}
+                          {money(displayPrice)} <span className="font-sans text-[11px] text-dim font-normal">/nt</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </>
               ) : (
@@ -225,11 +282,46 @@ export default function BookingModal({ open, onClose, initialRoom, dates, setDat
                   <textarea id="bm-requests" rows={2} placeholder="Late arrival, airport pickup, anniversary…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
               </div>
+              {/* Upsell products */}
+              {upsells.length > 0 && (
+                <div className="mt-5 p-4 rounded-xl bg-gold-500/5 border border-gold-500/20">
+                  <h5 className="font-serif text-[15px] text-cream mb-3">Enhance your stay</h5>
+                  <div className="space-y-2">
+                    {upsells.map((product) => {
+                      const isSelected = selectedUpsells.find((u) => u.id === product.id);
+                      let upPrice = product.price;
+                      if (product.multiply_by_nights) upPrice *= nights;
+                      if (product.multiply_by_guests) upPrice *= guests;
+                      return (
+                        <label key={product.id} className={'flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ' + (isSelected ? 'bg-gold-500/10 border border-gold-500/30' : 'bg-white/5 border border-transparent hover:border-white/10')}>
+                          <input type='checkbox' checked={!!isSelected} onChange={() => setSelectedUpsells((prev) => prev.find((u) => u.id === product.id) ? prev.filter((u) => u.id !== product.id) : [...prev, product])} className='sr-only' />
+                          <div className={'w-5 h-5 rounded-md border-2 grid place-items-center flex-shrink-0 transition-colors ' + (isSelected ? 'bg-gold-500 border-gold-500' : 'border-slate-500')}>
+                            {isSelected && <span className='text-navy-950 text-[12px] font-bold'>✓</span>}
+                          </div>
+                          <div className='flex-1 min-w-0'>
+                            <div className='text-[13px] font-bold text-cream'>{product.name}</div>
+                            <div className='text-[11px] text-dim'>{product.description}</div>
+                          </div>
+                          <div className='text-[13px] font-bold text-gold-400 whitespace-nowrap'>
+                            {money(upPrice)} <span className='text-[10px] text-dim font-normal'>{product.price_unit}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="summary mt-5">
                 <div className="row"><span>{room.room_number ? `Room ${room.room_number} · ` : ''}{room.name}</span><b>{money(room.price)} × {nights} night{nights > 1 ? 's' : ''}</b></div>
                 <div className="row"><span>Dates</span><b>{fmtDate(dates.checkIn)} → {fmtDate(dates.checkOut)}</b></div>
                 <div className="row"><span>Guests</span><b>{guests}</b></div>
-                <div className="row total"><span>Total</span><b>{money(room.price * nights)}</b></div>
+                {dynamicPrice && dynamicPrice.adjustments.length > 0 && (
+                  <div className="row text-[12px]"><span className="text-dim">Dynamic pricing</span><span className="text-gold-400">{dynamicPrice.adjustments.map((a) => a.label).join(', ')}</span></div>
+                )}
+                {selectedUpsells.length > 0 && (
+                  <div className="row"><span>Add-ons ({selectedUpsells.length})</span><b>{money(upsellTotal)}</b></div>
+                )}
+                <div className="row total"><span>Total</span><b>{money(displayPrice * nights + upsellTotal)}</b></div>
               </div>
               <p className="mt-4 text-[11.5px] text-dim flex items-start gap-1.5">
                 {I.calendar({ width: 13, height: 13 })}

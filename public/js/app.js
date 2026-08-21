@@ -23,7 +23,7 @@ const state = {
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-const money = (n) => `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+const money = (n) => `\u20a6${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 function fmtDate(iso) {
   return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {

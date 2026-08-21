@@ -20,7 +20,7 @@ export async function api(path, opts = {}) {
   return data;
 }
 
-export const money = (n) => `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+export const money = (n) => `\u20a6${Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export function fmtDate(iso) {
   if (!iso) return '';

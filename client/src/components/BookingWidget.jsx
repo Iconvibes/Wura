@@ -7,10 +7,10 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
 
   return (
     <form
-      className="card p-5 sm:p-6 mt-8"
+      className="glass-card p-5 sm:p-6 mt-8 rounded-2xl"
       onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
     >
-      <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-3">
+      <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 sm:gap-4">
         <div className="field">
           <label htmlFor="bw-checkin">Check-in</label>
           <div className="relative">
@@ -63,7 +63,7 @@ export default function BookingWidget({ dates, setDates, guests, setGuests, onSu
           Check availability
         </button>
       </div>
-      <p className="flex items-center gap-2 mt-4 text-[12px] text-dim">
+      <p className="flex items-center gap-2 mt-4 text-[12px] text-muted">
         <span className="text-gold-500">{I.shield({ width: 14, height: 14 })}</span>
         Free cancellation up to 48 hours before arrival
       </p>

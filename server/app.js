@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import publicRoutes from './routes/public.js';
+import publicExtensions from './routes/publicExtensions.js';
 import adminRoutes from './routes/admin.js';
 import { handleStripeWebhook, mockCheckoutRouter, isMock } from './stripe.js';
 import { isBot, renderRoute } from './prerender.js';
@@ -65,6 +66,7 @@ export function createApp() {
 
   /* --------------------------------- routes --------------------------------- */
   app.use('/api', publicRoutes);
+  app.use('/api', publicExtensions);
   app.use('/api/admin', adminRoutes);
 
   // Mock checkout page (only when no real Stripe key is configured).

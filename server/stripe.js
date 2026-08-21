@@ -54,7 +54,7 @@ export async function createCheckoutSession({ booking, room, nights, serverOrigi
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'ngn',
             product_data: {
               name: `${room.room_number ? `Room ${room.room_number} · ` : ''}${room.name} · ${nightsLabel}`,
               description: room.description ? room.description.slice(0, 190) : undefined,
