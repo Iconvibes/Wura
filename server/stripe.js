@@ -187,7 +187,7 @@ mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Secure checkout · Wura Grand Hotel</title>
+<title>Secure checkout · De Wura & Alfred Exotic Place Hotel</title>
 <style>
   * { box-sizing: border-box; margin: 0; }
   body {
@@ -243,7 +243,7 @@ mockCheckoutRouter.get('/mock-checkout/:id', (req, res) => {
 <body>
   <div class="wrap">
     <div class="brand">
-      <div class="logo">WURA GRAND</div>
+      <div class="logo">DE WURA & ALFRED</div>
       <div class="sub">Secure checkout</div>
     </div>
     <div class="card">

@@ -10,29 +10,25 @@ import { usePageMeta } from '../hooks/usePageMeta.jsx';
 import ResponsiveImage from '../components/ResponsiveImage.jsx';
 
 const PHOTOS = [
-  { src: '/images/hero.jpg', cap: 'The Golden Lobby', cat: 'hotel' },
-  { src: '/images/pool.jpg', cap: 'Terrace Pool at dusk', cat: 'wellness' },
-  { src: '/images/rooms/suite.jpg', cap: 'Skyline Suite', cat: 'rooms' },
-  { src: '/images/restaurant.jpg', cap: 'Leaf & Flame', cat: 'dining' },
-  { src: '/images/spa.jpg', cap: 'Golden Spa', cat: 'wellness' },
-  { src: '/images/rooms/deluxe.jpg', cap: 'Deluxe King', cat: 'rooms' },
-  { src: '/images/yoga.jpg', cap: 'Sunrise Yoga', cat: 'wellness' },
-  { src: '/images/exterior.jpg', cap: 'The Facade at dusk', cat: 'hotel' },
+  { src: '/images/exterior.jpg', cap: 'Hotel Exterior', cat: 'hotel' },
+  { src: '/images/hero.jpg', cap: 'The Entrance', cat: 'hotel' },
+  { src: '/images/bar.jpg', cap: 'VIP Bar', cat: 'lounge' },
+  { src: '/images/restaurant.jpg', cap: 'The Kitchen', cat: 'dining' },
+  { src: '/images/breakfast.jpg', cap: 'Intercontinental Dishes', cat: 'dining' },
+  { src: '/images/rooms/suite.jpg', cap: 'Suite Room', cat: 'rooms' },
+  { src: '/images/rooms/deluxe.jpg', cap: 'Deluxe Room', cat: 'rooms' },
+  { src: '/images/rooms/standard.jpg', cap: 'Classic Room', cat: 'rooms' },
   { src: '/images/rooms/penthouse.jpg', cap: 'The Penthouse', cat: 'rooms' },
-  { src: '/images/car.jpg', cap: 'Classic Fleet', cat: 'hotel' },
-  { src: '/images/bar.jpg', cap: 'Gilt & Glass Bar', cat: 'dining' },
-  { src: '/images/breakfast.jpg', cap: 'Atelier Breakfast', cat: 'dining' },
-  { src: '/images/pool-aerial.jpg', cap: 'The Pool from above', cat: 'wellness' },
-  { src: '/images/spa-stones.jpg', cap: 'Hammam ritual', cat: 'wellness' },
-  { src: '/images/rooms/standard.jpg', cap: 'Classic Queen', cat: 'rooms' },
-  { src: '/images/bath.jpg', cap: 'Marble Bath', cat: 'rooms' },
+  { src: '/images/bath.jpg', cap: 'Room Amenities', cat: 'rooms' },
+  { src: '/images/exterior.jpg', cap: 'Hotel Facade at Dusk', cat: 'hotel' },
+  { src: '/images/bar.jpg', cap: 'Bar Ambience', cat: 'lounge' },
 ];
 
 const CATS = [
-  ['all', 'All moments'],
-  ['rooms', 'Rooms & Suites'],
-  ['dining', 'Dining'],
-  ['wellness', 'Wellness'],
+  ['all', 'All photos'],
+  ['rooms', 'Rooms'],
+  ['dining', 'Kitchen & Dining'],
+  ['lounge', 'Lounge & Bar'],
   ['hotel', 'The Hotel'],
 ];
 
@@ -40,7 +36,7 @@ const CATS = [
 const RATIOS = ['4/3', '3/4', '16/10', '1/1', '4/5', '3/2', '4/3', '1/1'];
 
 export default function Gallery() {
-  usePageMeta('Gallery — Wura Grand Hotel', 'A photographic record of Wura Grand — rooms, dining, wellness and the hotel itself, captured between check-ins.', '/social/gallery.png', PAGE_HEROS.gallery.image);
+  usePageMeta('Gallery — De Wura & Alfred Exotic Place Hotel', 'A look inside De Wura & Alfred — our spaces, our food, our people.', '/social/gallery.png', PAGE_HEROS.gallery.image);
   const [lightbox, setLightbox] = useState(null); // index into the filtered list
   const [cat, setCat] = useState('all');
 

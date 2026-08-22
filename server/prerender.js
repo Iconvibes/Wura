@@ -29,13 +29,13 @@ function ldHotel(origin) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Hotel',
-    name: 'Wura Grand Hotel',
+    name: 'De Wura & Alfred Exotic Place Hotel',
     description: 'Five-star rooms and suites with skyline views, a rooftop pool, golden spa and wood-fired dining. Family-run since 1962.',
     url: `${origin}/`,
     logo: `${origin}/favicon.svg`,
     image: [`${origin}/images/hero.jpg`, `${origin}/images/pool.jpg`],
-    telephone: '+1-555-012-1962',
-    email: 'stay@wura-y0y5.onrender.com',
+    telephone: '08101035359',
+    email: 'Goldfred@gmail.com',
     priceRange: '$$$',
     foundingDate: '1962',
     checkinTime: '15:00',
@@ -100,7 +100,7 @@ function shell({ title, description, canonical, image = '/images/hero.jpg', json
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Wura Grand Hotel" />
+  <meta property="og:site_name" content="De Wura & Alfred Exotic Place Hotel" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
@@ -131,11 +131,11 @@ function shell({ title, description, canonical, image = '/images/hero.jpg', json
 </head>
 <body>
   <header>
-    <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#e0c05a,#b8942a);display:grid;place-items:center;color:#0a1128;font-weight:bold;">W</span>
-    <span class="brand">WURA GRAND<small>HOTEL · EST. 1962</small></span>
+    <span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#e0c05a,#b8942a);display:grid;place-items:center;color:#0a1128;font-weight:bold;">D</span>
+    <span class="brand">DE WURA & ALFRED<small>EXOTIC PLACE HOTEL</small></span>
   </header>
   <main>${body}</main>
-  <footer>© 2026 Wura Grand Hotel — 1 Golden Crescent, City Centre · +1 (555) 012-1962</footer>
+  <footer>© 2026 De Wura & Alfred Exotic Place Hotel — 9 & 11, Lekan Oyekunle Street, Meran, Lagos · 08101035359</footer>
 </body>
 </html>`;
 }
@@ -144,8 +144,8 @@ function shell({ title, description, canonical, image = '/images/hero.jpg', json
 
 const STATIC_PAGES = {
   experience: {
-    title: 'The Experience — Wura Grand Hotel',
-    description: 'Terrace pool, golden spa, wood-fired dining and more — every experience at Wura Grand is included with your stay.',
+    title: 'The Experience — De Wura & Alfred Exotic Place Hotel',
+    description: 'Terrace pool, golden spa, wood-fired dining and more — every experience at De Wura & Alfred is included with your stay.',
     image: '/social/experience.png',
     body: `
       <h1>The Experience</h1>
@@ -161,28 +161,28 @@ const STATIC_PAGES = {
       </ul>`,
   },
   gallery: {
-    title: 'Gallery — Wura Grand Hotel',
-    description: 'A photographic record of Wura Grand — rooms, dining, wellness and the hotel itself, captured between check-ins.',
+    title: 'Gallery — De Wura & Alfred Exotic Place Hotel',
+    description: 'A photographic record of De Wura & Alfred — rooms, dining, wellness and the hotel itself, captured between check-ins.',
     image: '/social/gallery.png',
     body: `<h1>Gallery</h1><p class="sub">A quiet record of light, linen and skyline — captured between check-ins. Browse 16 frames across rooms, dining, wellness and the hotel itself.</p>`,
   },
   stories: {
-    title: 'Guest Stories — Wura Grand Hotel',
-    description: 'Five-star words from the people who know us best: 2,400+ verified guest reviews of Wura Grand Hotel.',
+    title: 'Guest Stories — De Wura & Alfred Exotic Place Hotel',
+    description: 'Five-star words from the people who know us best: 2,400+ verified guest reviews of De Wura & Alfred Exotic Place Hotel.',
     image: '/social/stories.png',
     body: `<h1>Guest Stories</h1><p class="sub">Loved by travellers — rated 4.9 out of 5 across 2,400+ reviews. The staff remember your name by day two.</p>`,
   },
   about: {
-    title: 'Our Story — Wura Grand Hotel',
-    description: 'Sixty years of quiet luxury: the history of Wura Grand, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.',
+    title: 'Our Story — De Wura & Alfred Exotic Place Hotel',
+    description: 'Sixty years of quiet luxury: the history of De Wura & Alfred, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.',
     image: '/social/about.png',
     body: `<h1>Sixty years of quiet luxury</h1><p class="sub">Mariam Wura opened the doors in 1962 with ten rooms and one rule: every guest leaves knowing their name. Today her granddaughter Adaeze hosts on the same corner of Golden Crescent.</p>`,
   },
   contact: {
-    title: 'Contact — Wura Grand Hotel',
-    description: 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.',
+    title: 'Contact — De Wura & Alfred Exotic Place Hotel',
+    description: 'The front desk answers around the clock. Reservations, group stays and special requests at De Wura & Alfred Exotic Place Hotel.',
     image: '/social/contact.png',
-    body: `<h1>Contact</h1><p class="sub">1 Golden Crescent, City Centre · +1 (555) 012-1962 · stay@wura-y0y5.onrender.com</p><p class="sub">The front desk answers around the clock — real people, no menus.</p>`,
+    body: `<h1>Contact</h1><p class="sub">9 & 11, Lekan Oyekunle Street, Meran, Lagos · 08101035359 · Goldfred@gmail.com</p><p class="sub">The front desk answers around the clock — real people, no menus.</p>`,
   },
 };
 
@@ -198,14 +198,14 @@ export async function renderRoute(req) {
       .map((r) => `<li><a href="/rooms/${encodeURIComponent(r.name)}">${esc(r.name)}</a> — ${esc(r.type)} · ${money(r.price)}/night</li>`)
       .join('\n');
     return shell({
-      title: 'Wura Grand Hotel — Luxury Stay, Timeless Elegance',
+      title: 'De Wura & Alfred Exotic Place Hotel — Luxury Stay, Timeless Elegance',
       description: 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.',
       canonical: origin + '/',
       image: '/social/home.png',
       jsonLd: ld,
       body: `
         <h1>Where every stay feels golden</h1>
-        <p class="sub">Wura Grand rises above the skyline with 50 rooms and suites across five tiers — from sunrise espresso on your balcony to a late-night soak under the stars.</p>
+        <p class="sub">De Wura & Alfred rises above the skyline with 50 rooms and suites across five tiers — from sunrise espresso on your balcony to a late-night soak under the stars.</p>
         <h2>Featured rooms</h2>
         <ul>${list}</ul>
         <p class="sub"><a href="/rooms">Browse all rooms &amp; suites →</a></p>`,
@@ -221,8 +221,8 @@ export async function renderRoute(req) {
       )
       .join('\n');
     return shell({
-      title: 'Rooms & Suites — Wura Grand Hotel',
-      description: 'Browse 50 rooms and suites with live availability, free cancellation and skyline views. Book directly with Wura Grand.',
+      title: 'Rooms & Suites — De Wura & Alfred Exotic Place Hotel',
+      description: 'Browse 50 rooms and suites with live availability, free cancellation and skyline views. Book directly with De Wura & Alfred.',
       canonical: origin + '/rooms',
       image: '/social/rooms.png',
       jsonLd: ld,
@@ -239,7 +239,7 @@ export async function renderRoute(req) {
       const roomLabel = r.room_number ? `Room ${r.room_number} · ` : '';
       const amenityTags = (r.amenities || []).map((a) => `<span class="tag">${esc(a)}</span>`).join('');
       return shell({
-        title: `${roomLabel}${r.name} — Wura Grand Hotel`,
+        title: `${roomLabel}${r.name} — De Wura & Alfred Exotic Place Hotel`,
         description: `${roomLabel}${r.name}: ${r.description}`,
         canonical: `${origin}/rooms/${encodeURIComponent(r.name)}`,
         image: roomCardImage(r),
@@ -270,11 +270,11 @@ export async function renderRoute(req) {
 
   // Unknown guest route: a basic page so crawlers don't see a blank SPA.
   return shell({
-    title: 'Wura Grand Hotel — Luxury Stay, Timeless Elegance',
-    description: 'Wura Grand Hotel: five-star rooms, skyline views and warm hospitality.',
+    title: 'De Wura & Alfred Exotic Place Hotel — Luxury Stay, Timeless Elegance',
+    description: 'De Wura & Alfred Exotic Place Hotel: five-star rooms, skyline views and warm hospitality.',
     canonical: origin + path,
     image: '/social/home.png',
     jsonLd: ld,
-    body: `<h1>Wura Grand Hotel</h1><p class="sub">Fifty rooms and suites, one standard of excellence. Rising above the city since 1962.</p><p class="sub"><a href="/">Return to the homepage →</a></p>`,
+    body: `<h1>De Wura & Alfred Exotic Place Hotel</h1><p class="sub">Fifty rooms and suites, one standard of excellence. Rising above the city since 1962.</p><p class="sub"><a href="/">Return to the homepage →</a></p>`,
   });
 }

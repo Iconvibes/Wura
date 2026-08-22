@@ -7,12 +7,14 @@
 export { HERO_IMAGE, ROOM_PHOTOS, ROOM_PHOTOS_BY_NAME, roomPhoto, roomPhotos, roomSlug, roomCardImage, imgSrcset, IMG_RESP_WIDTHS } from '../../../shared/roomPhotos.js';
 
 export const EXPERIENCE_PHOTOS = {
+  room: '/images/rooms/suite.jpg',
   pool: '/images/pool.jpg',
   spa: '/images/spa.jpg',
   flame: '/images/restaurant.jpg',
   yoga: '/images/yoga.jpg',
   car: '/images/car.jpg',
   plate: '/images/breakfast.jpg',
+  shield: '/images/exterior.jpg',
 };
 
 export const GALLERY_PHOTOS = [

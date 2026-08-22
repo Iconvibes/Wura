@@ -20,7 +20,7 @@ beforeEach(async () => {
 describe('prerender for non-JS crawlers', () => {
   it('serves rendered HTML with structured data on the homepage to bots', async () => {
     const res = await request(app).get('/').set('User-Agent', GOOGLEBOT).expect(200);
-    expect(res.text).toContain('<title>Wura Grand Hotel');
+    expect(res.text).toContain('<title>De Wura & Alfred Exotic Place Hotel');
     expect(res.text).toContain('aggregateRating');
     expect(res.text).toContain('"@type":"Hotel"');
     expect(res.text).toContain('Deluxe Garden');
@@ -51,10 +51,10 @@ describe('prerender for non-JS crawlers', () => {
 
     const home = await request(app).get('/').set('User-Agent', GOOGLEBOT).expect(200);
     expect(home.text).toContain('property="og:type" content="website"');
-    expect(home.text).toContain('property="og:site_name" content="Wura Grand Hotel"');
+    expect(home.text).toContain('property="og:site_name" content="De Wura & Alfred Exotic Place Hotel"');
     expect(home.text).toContain('property="og:locale" content="en_US"');
     expect(home.text).toContain('name="twitter:card" content="summary_large_image"');
-    expect(home.text).toContain('property="og:title" content="Wura Grand Hotel');
+    expect(home.text).toContain('property="og:title" content="De Wura & Alfred Exotic Place Hotel');
     // og:image must be an absolute URL pointing at the branded social card.
     expect(home.text).toMatch(img('/social/home.png'));
     expect(home.text).toContain('property="og:image" content="http://');

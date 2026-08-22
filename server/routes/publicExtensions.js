@@ -77,7 +77,7 @@ const HOTEL_FAQ = [
   },
   {
     q: /wifi|internet|wi-fi|password/i,
-    a: 'Complimentary high-speed Wi-Fi throughout the hotel.' + NL + NL + 'Network: "Wura Grand"' + NL + 'Password: On your key card sleeve' + NL + NL + 'Need help connecting?',
+    a: 'Complimentary high-speed Wi-Fi throughout the hotel.' + NL + NL + 'Network: "De Wura & Alfred"' + NL + 'Password: On your key card sleeve' + NL + NL + 'Need help connecting?',
     suggestions: ['Report Wi-Fi issue', 'Other amenities', 'Business services']
   },
   {

@@ -7,7 +7,7 @@ import { STORIES, PAGE_HEROS } from '../lib/content.jsx';
 import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Stories() {
-  usePageMeta('Guest Stories — Wura Grand Hotel', 'Five-star words from the people who know us best: 2,400+ verified guest reviews of Wura Grand Hotel.', '/social/stories.png', PAGE_HEROS.stories.image);
+  usePageMeta('Guest Stories — De Wura & Alfred Exotic Place Hotel', 'Real words from real guests of De Wura & Alfred Exotic Place Hotel.', '/social/stories.png', PAGE_HEROS.stories.image);
   const [init, name, tag, quote] = STORIES[0];
 
   return (
@@ -70,7 +70,7 @@ export default function Stories() {
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-5 pt-16 text-center">
         <Reveal variant="up">
-          <h2 className="font-serif text-[clamp(1.7rem,3.5vw,2.4rem)] text-cream">Write your own story here</h2>
+          <h2 className="font-serif text-[clamp(1.7rem,3.5vw,2.4rem)] text-cream">Experience it for yourself</h2>
           <p className="text-muted text-[14.5px] mt-3 max-w-md mx-auto">The reviews are lovely — but they're better when you're in one.</p>
           <Link to="/rooms" className="btn btn-gold mt-7 inline-flex">Check availability</Link>
         </Reveal>

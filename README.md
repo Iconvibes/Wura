@@ -1,4 +1,4 @@
-# Wura Grand Hotel — MERN Stack Edition
+# De Wura & Alfred Exotic Place Hotel — MERN Stack Edition
 
 A fullstack hotel booking webapp: **MongoDB + Express + React + Node** (MERN), built with **Vite** and **Tailwind CSS v4**.
 
@@ -59,7 +59,7 @@ would match and the crossfade would be skipped), and the veil is skipped under
   live domain `wura-y0y5.onrender.com` — update the `<loc>` entries if you move
   to a custom domain.
 - Every page sets its own `<title>` + meta description via the `usePageMeta` hook
-  (including per-room titles like *“Deluxe King — Wura Grand Hotel”*), which also
+  (including per-room titles like *“Deluxe King — De Wura & Alfred Exotic Place Hotel”*), which also
   emits **Open Graph + Twitter Card tags** — `og:title`/`og:description`/`og:url`,
   `og:site_name`, `og:locale`, `twitter:card=summary_large_image` and a
   **per-page `og:image`**: a purpose-built **1200×630 branded social card**

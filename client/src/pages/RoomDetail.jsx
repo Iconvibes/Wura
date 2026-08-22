@@ -18,7 +18,7 @@ export default function RoomDetail() {
   const [room, setRoom] = useState(null);
   const [error, setError] = useState('');
   // preload the gallery's first photo (the LCP) with the stage's exact sizes
-  usePageMeta(room ? `${room.name} — Wura Grand Hotel` : 'Room — Wura Grand Hotel', room ? `${room.name}: ${room.description}` : 'A signature room at Wura Grand Hotel.', room ? roomCardImage(room) : undefined, room ? roomPhoto(room) : undefined, '(min-width: 1024px) 60vw, 100vw');
+  usePageMeta(room ? `${room.name} — De Wura & Alfred` : 'Room — De Wura & Alfred', room ? `${room.name}: ${room.description}` : 'A signature room at De Wura & Alfred Exotic Place Hotel.', room ? roomCardImage(room) : undefined, room ? roomPhoto(room) : undefined, '(min-width: 1024px) 60vw, 100vw');
   // Per-room structured data: HotelRoom + Offer (removed when leaving the room).
   useJsonLd('seo-room-offer', room ? roomOfferLD(room) : null);
   const [active, setActive] = useState(0);
@@ -166,7 +166,7 @@ export default function RoomDetail() {
                   Call the front desk — we'll match you to the right room and hold it for you.
                 </p>
                 <div className="text-[14px] text-gold-400 font-semibold mt-3 flex items-center gap-2">
-                  {I.phone({ width: 15, height: 15 })} +1 (555) 012-1962
+                  {I.phone({ width: 15, height: 15 })} 08101035359
                 </div>
               </div>
             </Reveal>

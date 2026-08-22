@@ -10,7 +10,7 @@ import { HERO_IMAGE } from '../lib/photos.jsx';
 import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function About() {
-  usePageMeta('Our Story — Wura Grand Hotel', 'Sixty years of quiet luxury: the history of Wura Grand, from Mariam Wura’s ten-room guesthouse in 1962 to the city’s most loved address.', '/social/about.png', PAGE_HEROS.about.image);
+  usePageMeta('About Us — De Wura & Alfred Exotic Place Hotel', 'De Wura & Alfred Exotic Place Hotel — a story of vision, passion and true Nigerian hospitality.', '/social/about.png', PAGE_HEROS.about.image);
   return (
     <div>
       <Navbar />
@@ -24,14 +24,14 @@ export default function About() {
               <ParallaxImage src={HERO_IMAGE} alt="The Golden Lobby" speed={0.12} />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent" />
               <div className="absolute left-5 bottom-5">
-                <div className="font-serif text-[15px] text-gold-300">The Golden Lobby, 2026</div>
-                <div className="text-[11px] tracking-[2px] uppercase text-dim">— photographed for the house archive</div>
+                <div className="font-serif text-[15px] text-gold-300">De Wura & Alfred Exotic Place Hotel</div>
+                <div className="text-[11px] tracking-[2px] uppercase text-dim">— Meran, Lagos</div>
               </div>
             </div>
           </Reveal>
           <Reveal variant="right" delay={1}>
-            <span className="eyebrow">Since 1962</span>
-            <h2 className="section-title">A guesthouse with one rule</h2>
+            <span className="eyebrow">Our Story</span>
+            <h2 className="section-title">Hospitality at its peak</h2>
             <p className="section-sub">
               Mariam Wura opened the doors in 1962 with ten rooms, a borrowed piano
               and a rule she wrote in her own hand: <em className="text-gold-400 not-italic font-serif">every guest leaves knowing their name</em>.
@@ -54,7 +54,7 @@ export default function About() {
       <section className="max-w-4xl mx-auto px-5 pt-20">
         <Reveal className="text-center">
           <span className="eyebrow">The Years</span>
-          <h2 className="section-title">A century of small revolutions</h2>
+          <h2 className="section-title">Our journey</h2>
         </Reveal>
         <div className="mt-12 relative">
           <div className="absolute left-[15px] md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gold-500/40 to-transparent" aria-hidden="true" />
@@ -86,7 +86,7 @@ export default function About() {
       <section className="max-w-6xl mx-auto px-5 pt-20">
         <Reveal className="text-center">
           <span className="eyebrow">What we stand for</span>
-          <h2 className="section-title">The house rules</h2>
+          <h2 className="section-title">What we stand for</h2>
         </Reveal>
         <div className="grid sm:grid-cols-3 gap-5 mt-10">
           {VALUES.map(([icon, title, desc], i) => (
@@ -120,7 +120,7 @@ export default function About() {
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-5 pt-16 text-center">
         <Reveal variant="zoom">
-          <h2 className="font-serif text-[clamp(1.7rem,3.5vw,2.4rem)] text-cream">Come and add a page to the ledger</h2>
+          <h2 className="font-serif text-[clamp(1.7rem,3.5vw,2.4rem)] text-cream">Experience true hospitality</h2>
           <p className="text-muted text-[14.5px] mt-3 max-w-md mx-auto">Sixty years of guests, and the first one is still welcome back at the same rate.</p>
           <Link to="/rooms" className="btn btn-gold mt-7 inline-flex">Check availability</Link>
         </Reveal>

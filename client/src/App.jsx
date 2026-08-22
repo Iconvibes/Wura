@@ -4,6 +4,7 @@ import ScrollToTop from './components/ScrollToTop.jsx';
 import PageTransition from './components/PageTransition.jsx';
 import ViewTransitionProvider from './components/ViewTransitionProvider.jsx';
 import { ToastHost } from './components/Toast.jsx';
+import WhatsAppButton from './components/WhatsAppButton.jsx';
 import { useJsonLd } from './hooks/useJsonLd.jsx';
 import { hotelLD } from './lib/seo.jsx';
 import { ADMIN_PATH } from './lib/adminPath.jsx';
@@ -43,6 +44,7 @@ export default function App() {
     <>
       <ScrollToTop />
       <ToastHost />
+      <WhatsAppButton />
       <ViewTransitionProvider>
       <PageTransition>
       <main id="main">

@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Wura Grand Hotel — fullstack MERN booking app (MongoDB + Express + React + Node) with Vite + Tailwind CSS.",
+  "description": "De Wura & Alfred Exotic Place Hotel — fullstack MERN booking app (MongoDB + Express + React + Node) with Vite + Tailwind CSS.",
   "scripts": {
     "setup": "npm --prefix server install && npm --prefix client install",
     "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev --prefix server\" \"npm run dev --prefix client\"",

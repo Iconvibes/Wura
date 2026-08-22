@@ -11,13 +11,13 @@ describe('usePageMeta', () => {
   it('sets title, description, Open Graph and Twitter card tags', () => {
     render(
       <Probe
-        title="Deluxe King — Wura Grand Hotel"
+        title="Deluxe King — De Wura & Alfred Exotic Place Hotel"
         desc="Wake to the gardens from your private balcony."
         image="/images/rooms/deluxe-king-1.jpg"
       />
     );
 
-    expect(document.title).toBe('Deluxe King — Wura Grand Hotel');
+    expect(document.title).toBe('Deluxe King — De Wura & Alfred Exotic Place Hotel');
     expect(document.querySelector('meta[name="description"]').content).toBe(
       'Wake to the gardens from your private balcony.'
     );
@@ -29,9 +29,9 @@ describe('usePageMeta', () => {
 
     // Open Graph
     expect(document.querySelector('meta[property="og:type"]').content).toBe('website');
-    expect(document.querySelector('meta[property="og:site_name"]').content).toBe('Wura Grand Hotel');
+    expect(document.querySelector('meta[property="og:site_name"]').content).toBe('De Wura & Alfred Exotic Place Hotel');
     expect(document.querySelector('meta[property="og:locale"]').content).toBe('en_US');
-    expect(document.querySelector('meta[property="og:title"]').content).toBe('Deluxe King — Wura Grand Hotel');
+    expect(document.querySelector('meta[property="og:title"]').content).toBe('Deluxe King — De Wura & Alfred Exotic Place Hotel');
     expect(document.querySelector('meta[property="og:description"]').content).toBe(
       'Wake to the gardens from your private balcony.'
     );
@@ -45,7 +45,7 @@ describe('usePageMeta', () => {
 
     // Twitter card
     expect(document.querySelector('meta[name="twitter:card"]').content).toBe('summary_large_image');
-    expect(document.querySelector('meta[name="twitter:title"]').content).toBe('Deluxe King — Wura Grand Hotel');
+    expect(document.querySelector('meta[name="twitter:title"]').content).toBe('Deluxe King — De Wura & Alfred Exotic Place Hotel');
     expect(document.querySelector('meta[name="twitter:description"]').content).toBe(
       'Wake to the gardens from your private balcony.'
     );

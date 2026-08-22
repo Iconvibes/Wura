@@ -5,7 +5,7 @@ describe('hotelLD', () => {
   it('builds a Hotel block with the aggregate rating', () => {
     const ld = hotelLD();
     expect(ld['@type']).toBe('Hotel');
-    expect(ld.name).toBe('Wura Grand Hotel');
+    expect(ld.name).toBe('De Wura & Alfred Exotic Place Hotel');
     expect(ld.aggregateRating).toMatchObject({
       '@type': 'AggregateRating',
       ratingValue: '4.9',

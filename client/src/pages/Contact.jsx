@@ -10,13 +10,14 @@ import { PAGE_HEROS } from '../lib/content.jsx';
 import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 const INFO = [
-  ['room', 'The address', '1 Golden Crescent, City Centre', 'Two blocks from the river promenade, ten minutes from the airport.'],
-  ['phone', 'Front desk', '+1 (555) 012-1962', 'Answering around the clock — real people, no menus.'],
-  ['calendar', 'Reservations', 'stay@wura-y0y5.onrender.com', 'Group bookings, anniversaries and long stays get an answer within the hour.'],
+  ['room', 'The address', '9 & 11, Lekan Oyekunle Street, Meran, Lagos', 'Easy to find, right in the heart of Meran.'],
+  ['phone', 'Front desk', '08101035359', 'Call us anytime — available around the clock.', 'tel:08101035359'],
+  ['phone', 'Reservations', '08088476099', 'For bookings, group stays and special requests.', 'tel:08088476099'],
+  ['calendar', 'Email', 'Goldfred@gmail.com', 'Send us an email — we reply within the hour.', 'mailto:Goldfred@gmail.com'],
 ];
 
 export default function Contact() {
-  usePageMeta('Contact — Wura Grand Hotel', 'The front desk answers around the clock. Reservations, group stays and special requests at Wura Grand Hotel.', '/social/contact.png', PAGE_HEROS.contact.image);
+  usePageMeta('Contact — De Wura & Alfred Exotic Place Hotel', 'Reach De Wura & Alfred Exotic Place Hotel for reservations, enquiries and special requests.', '/social/contact.png', PAGE_HEROS.contact.image);
   const [form, setForm] = useState({ name: '', email: '', subject: 'Reservation enquiry', message: '' });
   const [busy, setBusy] = useState(false);
   const [honeypot, setHoneypot] = useState('');
@@ -67,7 +68,7 @@ export default function Contact() {
         <div className="grid lg:grid-cols-[1fr_1.3fr] gap-8 items-start">
           {/* info cards — slide in from the left */}
           <div className="space-y-4">
-            {INFO.map(([icon, title, value, sub], i) => (
+            {INFO.map(([icon, title, value, sub, link], i) => (
               <Reveal key={title} variant="left" delay={i}>
                 <div className="card p-6 flex gap-4 items-start">
                   <div className="w-11 h-11 shrink-0 rounded-xl grid place-items-center text-gold-400 bg-navy-900 border border-gold-500/25">
@@ -75,19 +76,31 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="text-[11px] tracking-[2px] uppercase text-gold-500 font-bold">{title}</div>
-                    <div className="text-[15px] font-semibold text-cream mt-1">{value}</div>
+                    {link ? (
+                      <a href={link} className="text-[15px] font-semibold text-gold-400 mt-1 hover:underline">{value}</a>
+                    ) : (
+                      <div className="text-[15px] font-semibold text-cream mt-1">{value}</div>
+                    )}
                     <div className="text-[12.5px] text-dim mt-1 leading-relaxed">{sub}</div>
                   </div>
                 </div>
               </Reveal>
             ))}
             <Reveal variant="left" delay={3}>
-              <div className="card p-6">
-                <div className="text-[11px] tracking-[2px] uppercase text-gold-500 font-bold">Arriving by car?</div>
-                <p className="text-[13px] text-muted mt-2 leading-relaxed">
-                  Valet parking is complimentary for guests, and the hotel's electric-car fleet
-                  is available for hire from the front drive.
-                </p>
+              <div className="card p-6 overflow-hidden">
+                <div className="text-[11px] tracking-[2px] uppercase text-gold-500 font-bold mb-3">Find us on the map</div>
+                <div className="rounded-xl overflow-hidden border border-white/10">
+                  <iframe
+                    title="De Wura & Alfred Exotic Place Hotel Location"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.0!2d3.2703619!3d6.6437554!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s9+%26+11+Lekan+Oyekunle+Street+Meran+Lagos!5e0!3m2!1sen!2sng!4v1"
+                    width="100%"
+                    height="220"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
               </div>
             </Reveal>
           </div>

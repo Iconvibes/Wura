@@ -38,7 +38,7 @@ export function sendContactMessage({ name, email, subject, message }) {
 
   const subjectLine = `Contact form · ${subject || 'Enquiry'} · from ${name}`;
   const text = [
-    `─── ✦ WURA GRAND HOTEL — Contact Form ✦ ───`,
+    `─── ✦ DE WURA & ALFRED EXOTIC PLACE HOTEL — Contact Form ✦ ───`,
     `From:      ${name}`,
     `Email:     ${email}`,
     `Subject:   ${subject || 'Enquiry'}`,
@@ -83,9 +83,9 @@ export async function saveContactMessage({ name, email, subject, message }) {
 
 export function buildConfirmationEmail(booking, room) {
   const to = booking.guest_email;
-  const subject = `Your booking ${booking.ref} at Wura Grand Hotel is confirmed`;
+  const subject = `Your booking ${booking.ref} at De Wura & Alfred Exotic Place Hotel is confirmed`;
   const lines = [
-    `─── ✦ WURA GRAND HOTEL — Booking Confirmation ✦ ───`,
+    `─── ✦ DE WURA & ALFRED EXOTIC PLACE HOTEL — Booking Confirmation ✦ ───`,
     `To:          ${to}`,
     `Reference:   ${booking.ref}`,
     `Guest:       ${booking.guest_name}`,
@@ -98,7 +98,7 @@ export function buildConfirmationEmail(booking, room) {
     `Status:      ${booking.status}`,
     `Check-in is at 15:00 · Check-out at 11:00.`,
     `Free cancellation up to 48h before arrival.`,
-    `Questions?  Reply to this email or call +1 (555) 012-1962.`,
+    `Questions?  Reply to this email or call 08101035359.`,
     `───`,
   ];
   return { to, subject, text: lines.join('\n') };

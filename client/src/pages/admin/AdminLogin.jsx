@@ -8,7 +8,7 @@ import { usePageMeta } from '../../hooks/usePageMeta.jsx';
 export default function AdminLogin() {
   // No preload arg → the stale home-hero <link rel=preload> is removed and the
   // tab shows a proper staff title (server also strips it on direct loads).
-  usePageMeta('Staff Login — Wura Grand Hotel', 'Authorized staff access to the Wura Grand Hotel staff portal.');
+  usePageMeta('Staff Login — De Wura & Alfred Exotic Place Hotel', 'Authorized staff access to the De Wura & Alfred Exotic Place Hotel staff portal.');
   const nav = useNavigate();
   const [accessCode, setAccessCode] = useState('');
   const [codeVerified, setCodeVerified] = useState(false);
@@ -136,9 +136,9 @@ export default function AdminLogin() {
     <div className="login-wrap">
       <div className="w-full max-w-md fade-up">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950 text-2xl mx-auto shadow-[0_0_40px_rgba(212,175,55,0.45)]">W</div>
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950 text-2xl mx-auto shadow-[0_0_40px_rgba(212,175,55,0.45)]">D</div>
           <h1 className="font-serif text-[26px] text-cream mt-4">Staff Portal</h1>
-          <p className="text-[13px] text-muted mt-1">Wura Grand Hotel · Authorized staff only</p>
+          <p className="text-[13px] text-muted mt-1">De Wura & Alfred Exotic Place Hotel · Authorized staff only</p>
         </div>
 
         {!codeVerified && !recovering ? (

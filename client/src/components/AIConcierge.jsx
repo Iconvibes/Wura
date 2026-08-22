@@ -32,7 +32,7 @@ export default function AIConcierge() {
   const [messages, setMessages] = useState([
     { 
       sender: 'ai', 
-      text: 'Hello! I\u2019m your Wura Grand concierge. I can help with rooms, amenities, bookings, or anything else you need.',
+      text: 'Hello! I\u2019m your De Wura & Alfred concierge. I can help with rooms, amenities, bookings, or anything else you need.',
       suggestions: INITIAL_SUGGESTIONS,
       timestamp: new Date()
     },
@@ -275,7 +275,7 @@ export default function AIConcierge() {
                 onClick={() => {
                   setMessages([{
                     sender: 'ai',
-                    text: 'Hello! I\u2019m your Wura Grand concierge. I can help with rooms, amenities, bookings, or anything else you need.',
+                    text: 'Hello! I\u2019m your De Wura & Alfred concierge. I can help with rooms, amenities, bookings, or anything else you need.',
                     suggestions: INITIAL_SUGGESTIONS,
                     timestamp: new Date()
                   }]);

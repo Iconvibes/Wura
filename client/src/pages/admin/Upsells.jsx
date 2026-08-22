@@ -189,4 +189,41 @@ export default function Upsells() {
         <div className="py-24"><div className="spinner" /></div>
       ) : products.length === 0 ? (
         <div className="card p-12 text-center">
-          <div
+                        <div className="text-gold-400 mb-3">{Icon({ name: "star", size: 32 })}</div>
+              <h2 className="font-serif text-[20px] text-cream">No upsell products yet</h2>
+              <p className="text-[13.5px] text-muted mt-2">Add products that guests can purchase as extras during booking.</p>
+              <button className="btn btn-gold mt-5" onClick={() => { setEditing(null); setShowForm(true); }}>Add your first product</button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {products.map((p) => (
+                <div key={p.id} className="card p-5 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl grid place-items-center text-gold-400 bg-navy-900 border border-gold-500/25 shrink-0">
+                    {Icon({ name: p.icon || "star", size: 18 })}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-cream text-[14px] truncate">{p.name}</span>
+                      <span className="text-[10px] tracking-[1.5px] uppercase px-2 py-0.5 rounded-full bg-white/5 text-dim">
+                        {CATEGORIES.find((c) => c.value === p.category)?.label || p.category}
+                      </span>
+                      <span className="font-serif text-gold-400 text-[14px]">{money(p.price)}</span>
+                      <span className="text-[11px] text-dim">{p.price_unit}</span>
+                      {!p.enabled && <span className="text-[10px] tracking-[1.5px] uppercase px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">disabled</span>}
+                    </div>
+                    {p.description && <p className="text-[12.5px] text-dim mt-1 truncate">{p.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button className="btn btn-ghost btn-xs" onClick={() => toggle(p)}>
+                      {p.enabled ? "Disable" : "Enable"}
+                    </button>
+                    <button className="btn btn-ghost btn-xs" onClick={() => { setEditing(p); setShowForm(true); }}>Edit</button>
+                    <button className="btn btn-ghost btn-xs !text-red-400/90 hover:!bg-red-500/10" onClick={() => remove(p)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+    );
+  }

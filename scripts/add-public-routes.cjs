@@ -58,7 +58,7 @@ router.get('/guest-messages/:threadId', async (req, res, next) => {
 const HOTEL_FAQ = [
   { q: /check.?in|arrival|arrive/i, a: 'Check-in is from 3:00 PM. Early check-in may be available upon request.' },
   { q: /check.?out|depart/i, a: 'Check-out is at 11:00 AM. Late checkout until 2:00 PM is available as an add-on.' },
-  { q: /wifi|internet|wi-fi/i, a: 'Complimentary high-speed Wi-Fi throughout the hotel. Network: "Wura Grand", password on your key card sleeve.' },
+  { q: /wifi|internet|wi-fi/i, a: 'Complimentary high-speed Wi-Fi throughout the hotel. Network: "De Wura & Alfred", password on your key card sleeve.' },
   { q: /park|car|valet/i, a: 'Valet parking at $25/day, self-parking at $15/day. The garage is on Golden Crescent.' },
   { q: /breakfast|morning/i, a: 'Atelier Breakfast daily 7 AM to noon in the garden room.' },
   { q: /pool|swim/i, a: 'Skyline Terrace Pool on the 21st floor, open dawn to midnight.' },

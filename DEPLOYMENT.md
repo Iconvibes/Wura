@@ -1,4 +1,4 @@
-# Deploying Wura Grand Hotel to Render
+# Deploying De Wura & Alfred Exotic Place Hotel to Render
 
 Everything needed to go from this repo to a live site — credentials, env vars, and
 the steps to run before and after pushing. Work through **Section 1 before the

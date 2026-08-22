@@ -13,7 +13,7 @@ import { PAGE_HEROS } from '../lib/content.jsx';
 import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Rooms() {
-  usePageMeta('Rooms & Suites — Wura Grand Hotel', 'Browse 50 rooms and suites across five tiers with live availability, free cancellation and skyline views. Book directly with Wura Grand.', '/social/rooms.png', PAGE_HEROS.rooms.image);
+  usePageMeta('Rooms & Suites — De Wura & Alfred Exotic Place Hotel', 'Browse rooms and suites with live availability, free cancellation and more. Book directly with De Wura & Alfred.', '/social/rooms.png', PAGE_HEROS.rooms.image);
   const [params, setParams] = useSearchParams();
   const [dates, setDates] = useState(() => ({
     checkIn: params.get('checkIn') || todayISO(),

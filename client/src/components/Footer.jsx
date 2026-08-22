@@ -13,14 +13,14 @@ export default function Footer() {
         <div className="max-w-6xl mx-auto px-5 py-16 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div>
             <Link to="/" className="flex items-center gap-3 mb-4">
-              <span className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950">W</span>
+              <span className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950">D</span>
               <span className="leading-tight">
-                <span className="block font-serif text-[16px] tracking-[2px] text-cream">WURA GRAND</span>
-                <span className="block text-[9px] tracking-[3.5px] text-gold-500">HOTEL · EST. 1962</span>
+                <span className="block font-serif text-[16px] tracking-[2px] text-cream">DE WURA</span>
+                <span className="block text-[9px] tracking-[3.5px] text-gold-500">ALFRED · EXOTIC PLACE</span>
               </span>
             </Link>
             <p className="text-[13.5px] leading-relaxed text-muted max-w-xs">
-              Fifty rooms across five tiers, one standard of excellence. Rising above the city since 1962, Wura Grand pairs old-world warmth with modern luxury.
+              De Wura & Alfred Exotic Place Hotel — lodging, lounge, VIP bar, kitchen, night club, laundry and more. Hospitality at its peak.
             </p>
           </div>
 
@@ -53,21 +53,21 @@ export default function Footer() {
             <ul className="space-y-3 text-[13.5px] text-muted">
               <li className="flex items-start gap-3">
                 <span className="text-gold-500 mt-0.5">{I.room({ width: 16, height: 16 })}</span>
-                1 Golden Crescent, City Centre
+                9 & 11, Lekan Oyekunle Street, Meran, Lagos
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-gold-500 mt-0.5">{I.phone({ width: 16, height: 16 })}</span>
-                +1 (555) 012-1962
+                <a href="tel:08101035359" className="hover:text-gold-400 transition-colors">08101035359</a> / <a href="tel:08088476099" className="hover:text-gold-400 transition-colors">08088476099</a>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-gold-500 mt-0.5">{I.calendar({ width: 16, height: 16 })}</span>
-                stay@wura-y0y5.onrender.com
+                <a href="mailto:Goldfred@gmail.com" className="hover:text-gold-400 transition-colors">Goldfred@gmail.com</a>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-white/5 py-5 px-5 text-center text-[12px] text-dim">
-          © 2026 Wura Grand Hotel. All rights reserved.
+          © 2026 De Wura & Alfred Exotic Place Hotel. All rights reserved.
         </div>
       </footer>
 

@@ -175,4 +175,164 @@ function RuleForm({ rule, onSave, onCancel }) {
             </div>
             <div className="form-field">
               <label>Price adjustment (%)</label>
-              <input type="number" valu
+                              onChange={(e) => setForm({ ...form, occupancy_adjustment_pct: Number(e.target.value) })} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {form.type === 'early_bird' && (
+        <div className="mt-5 p-4 rounded-xl bg-gold-500/5 border border-gold-500/20">
+          <h4 className="text-[13px] font-bold text-gold-400 mb-3">Early Bird Settings</h4>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="form-field">
+              <label>Book N+ days in advance</label>
+              <input type="number" value={form.advance_days_min}
+                onChange={(e) => setForm({ ...form, advance_days_min: Number(e.target.value) })} />
+            </div>
+            <div className="form-field">
+              <label>Discount (%)</label>
+              <input type="number" value={form.early_bird_discount_pct}
+                onChange={(e) => setForm({ ...form, early_bird_discount_pct: Number(e.target.value) })} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {form.type === 'last_minute' && (
+        <div className="mt-5 p-4 rounded-xl bg-gold-500/5 border border-gold-500/20">
+          <h4 className="text-[13px] font-bold text-gold-400 mb-3">Last-Minute Settings</h4>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="form-field">
+              <label>Book within N days</label>
+              <input type="number" value={form.last_minute_days_max}
+                onChange={(e) => setForm({ ...form, last_minute_days_max: Number(e.target.value) })} />
+            </div>
+            <div className="form-field">
+              <label>Discount (%)</label>
+              <input type="number" value={form.last_minute_discount_pct}
+                onChange={(e) => setForm({ ...form, last_minute_discount_pct: Number(e.target.value) })} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {form.type === 'minimum_stay' && (
+        <div className="mt-5 p-4 rounded-xl bg-gold-500/5 border border-gold-500/20">
+          <h4 className="text-[13px] font-bold text-gold-400 mb-3">Minimum Stay</h4>
+          <div className="form-field">
+            <label>Minimum nights</label>
+            <input type="number" value={form.min_nights}
+              onChange={(e) => setForm({ ...form, min_nights: Number(e.target.value) })} />
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-3 mt-6">
+        <button className="btn btn-gold" disabled={saving} onClick={submit}>
+          {Icon({ name: 'shield', size: 15 })} {saving ? 'Saving...' : (rule?.id ? 'Update Rule' : 'Create Rule')}
+        </button>
+        <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+export default function Pricing() {
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null = list view, false = new rule, object = edit rule
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api('/api/admin/pricing');
+      setRules(data.rules || []);
+    } catch (e) {
+      toast(e.message, false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = async (rule) => {
+    try {
+      await api('/api/admin/pricing/' + rule.id, { method: 'PATCH', body: JSON.stringify({ enabled: !rule.enabled }) });
+      toast(rule.enabled ? 'Rule disabled' : 'Rule enabled');
+      await load();
+    } catch (e) { toast(e.message, false); }
+  };
+
+  const remove = async (rule) => {
+    if (!window.confirm('Delete pricing rule "' + rule.name + '"?')) return;
+    try {
+      await api('/api/admin/pricing/' + rule.id, { method: 'DELETE' });
+      toast('Rule deleted');
+      await load();
+    } catch (e) { toast(e.message, false); }
+  };
+
+  if (editing !== null) {
+    return (
+      <RuleForm
+        rule={editing === false ? null : editing}
+        onSave={() => { setEditing(null); load(); }}
+        onCancel={() => setEditing(null)}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-serif text-[26px] text-cream">Dynamic Pricing</h1>
+          <p className="text-[13px] text-muted mt-0.5">Manage pricing rules that adjust rates automatically</p>
+        </div>
+        <button className="btn btn-gold" onClick={() => setEditing(false)}>
+          {Icon({ name: 'star', size: 15 })} New Rule
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="py-20"><div className="spinner" /></div>
+      ) : rules.length === 0 ? (
+        <div className="card p-12 text-center">
+          <div className="text-gold-400 mb-3">{Icon({ name: 'chart', size: 32 })}</div>
+          <h2 className="font-serif text-[20px] text-cream">No pricing rules yet</h2>
+          <p className="text-[13.5px] text-muted mt-2">Create rules to adjust rates for weekends, seasons, occupancy and more.</p>
+          <button className="btn btn-gold mt-5" onClick={() => setEditing(false)}>Create your first rule</button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {rules.map((r) => (
+            <div key={r.id} className="card p-5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl grid place-items-center text-gold-400 bg-navy-900 border border-gold-500/25 shrink-0">
+                {Icon({ name: RULE_TYPES.find((t) => t.value === r.type)?.icon || 'chart', size: 18 })}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-cream text-[14px] truncate">{r.name}</span>
+                  <span className="text-[10px] tracking-[1.5px] uppercase px-2 py-0.5 rounded-full bg-white/5 text-dim">
+                    {RULE_TYPES.find((t) => t.value === r.type)?.label || r.type}
+                  </span>
+                  {!r.enabled && <span className="text-[10px] tracking-[1.5px] uppercase px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">disabled</span>}
+                </div>
+                {r.description && <p className="text-[12.5px] text-dim mt-1 truncate">{r.description}</p>}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button className="btn btn-ghost btn-xs" onClick={() => toggle(r)}>
+                  {r.enabled ? 'Disable' : 'Enable'}
+                </button>
+                <button className="btn btn-ghost btn-xs" onClick={() => setEditing(r)}>Edit</button>
+                <button className="btn btn-ghost btn-xs !text-red-400/90 hover:!bg-red-500/10" onClick={() => remove(r)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

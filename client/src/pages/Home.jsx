@@ -18,7 +18,7 @@ import ResponsiveImage from '../components/ResponsiveImage.jsx';
 import { AMENITIES, STORIES, TRUST_STRIP } from '../lib/content.jsx';
 
 export default function Home() {
-  usePageMeta('Wura Grand Hotel — Luxury Stay, Timeless Elegance', 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.', '/social/home.png', HERO_IMAGE);
+  usePageMeta('De Wura & Alfred Exotic Place Hotel — Hospitality At Its Peak', 'Five-star rooms, skyline views and warm hospitality at the city’s most loved hotel, est. 1962. Book your stay online.', '/social/home.png', HERO_IMAGE);
   const nav = useNavigate();
   const [dates, setDates] = useState(() => {
     const ci = todayISO();
@@ -86,18 +86,18 @@ export default function Home() {
         <div className="relative max-w-6xl mx-auto px-5 w-full">
           <div className="max-w-2xl">
             <div className="hero-stagger">
-              <span className="eyebrow">Five-star hospitality · City of gold</span>
+              <span className="eyebrow">Hospitality at its peak · Lagos</span>
               <h1 className="font-serif text-[clamp(2.4rem,5.5vw,4rem)] leading-[1.08] text-cream mt-5">
-                Where every stay feels <em className="text-gold-400 not-italic font-serif" style={{ textShadow: '0 0 40px rgba(212,175,55,0.35)' }}>golden</em>.
+                Where <em className="text-gold-400 not-italic font-serif" style={{ textShadow: '0 0 40px rgba(212,175,55,0.35)' }}>hospitality</em> meets excellence.
               </h1>
               <p className="text-[15.5px] leading-relaxed text-muted mt-5 max-w-lg">
-                Wura Grand rises above the skyline with 50 rooms across five tiers, crafted for travellers who expect more — from sunrise espresso on your balcony to a late-night soak under the stars.
+                De Wura & Alfred Exotic Place Hotel offers premium lodging, fine dining, a VIP bar, night club and world-class services — all under one roof with 24-hour power and maximum security.
               </p>
               <div className="flex flex-wrap gap-3 mt-7">
                 <Link to="/rooms" className="btn btn-gold">
                   {I.calendar({ width: 16, height: 16 })} Book a stay
                 </Link>
-                <Link to="/experience" className="btn btn-ghost">Explore the hotel</Link>
+                <Link to="/experience" className="btn btn-ghost">Our services</Link>
               </div>
             </div>
 
@@ -138,7 +138,7 @@ export default function Home() {
 
       {/* ========================= WURA DIVIDER ============================ */}
       <div className="max-w-6xl mx-auto px-5 py-10">
-        <div className="wura-divider"><span className="w-medallion">W</span></div>
+        <div className="wura-divider"><span className="w-medallion">D</span></div>
       </div>
 
       {/* ========================= FEATURED ROOMS ========================= */}
@@ -171,8 +171,8 @@ export default function Home() {
       <section id="experience" className="max-w-6xl mx-auto px-5 pt-20 scroll-mt-20">
         <Reveal>
           <span className="eyebrow">The Experience</span>
-          <h2 className="section-title">Little rituals, grand details</h2>
-          <p className="section-sub">From the moment the doors open, everything is arranged around your comfort.</p>
+          <h2 className="section-title">Our services</h2>
+          <p className="section-sub">From lodging to nightlife, dining to security — every service is designed around your comfort.</p>
         </Reveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
           {AMENITIES.slice(0, 3).map(([icon, title, desc], i) => (
@@ -196,7 +196,7 @@ export default function Home() {
           ))}
         </div>
         <Reveal className="text-center mt-10">
-          <Link to="/experience" className="btn btn-ghost">Explore the full experience</Link>
+          <Link to="/experience" className="btn btn-ghost">View all services</Link>
         </Reveal>
       </section>
 
@@ -257,7 +257,7 @@ export default function Home() {
             <div className="cta-glow" style={{ bottom: '-80px', right: '10%', animationDelay: '2s' }} aria-hidden="true" />
             <div className="absolute inset-0 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(212,175,55,0.12),transparent_70%)] pointer-events-none" />
             <span className="eyebrow">Reserve</span>
-            <h2 className="font-serif text-[clamp(1.9rem,4vw,2.8rem)] text-cream mt-4">Your golden room is waiting</h2>
+            <h2 className="font-serif text-[clamp(1.9rem,4vw,2.8rem)] text-cream mt-4">Your perfect room is waiting</h2>
             <p className="text-muted text-[14.5px] mt-3 max-w-md mx-auto">Reserve in under a minute — instant confirmation, free cancellation up to 48 hours before arrival.</p>
             <Link to="/rooms" className="btn btn-gold mt-7 inline-flex">{I.calendar({ width: 16, height: 16 })} Check availability</Link>
           </div>

@@ -6,7 +6,7 @@ import { imgSrcset } from '../lib/photos.jsx';
 // previews + faster first paint). `image` is a path like '/social/home.png' —
 // it is emitted as an absolute URL, as social platforms require. Pages pass a
 // purpose-built 1200×630 branded card; the fallback is the home card.
-const SITE_NAME = 'Wura Grand Hotel';
+const SITE_NAME = 'De Wura & Alfred Exotic Place Hotel';
 const DEFAULT_IMAGE = '/social/home.png';
 const PRELOAD_SEL = 'link[data-page-meta="preload"]';
 

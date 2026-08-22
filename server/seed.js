@@ -452,8 +452,8 @@ const DEMO_MESSAGES = [
 /** Parse guest enquiries out of the legacy data/emails.log into structured rows. */
 export function parseContactLog(text) {
   const rows = [];
-  // One contact entry: timestamp header line + a --- ✦ WURA GRAND HOTEL block.
-  const re = /\[(\d{4}-\d{2}-\d{2}T[^\]]+)\] TO:[^|]+\| SUBJECT:[^\n]*\n─── ✦ WURA GRAND HOTEL — Contact Form ✦ ───\nFrom:\s+([^\n]+)\nEmail:\s+([^\n]+)\nSubject:\s+([^\n]*)\nMessage:\n([\s\S]*?)\n───\n?\n?/g;
+  // One contact entry: timestamp header line + a --- ✦ DE WURA & ALFRED EXOTIC PLACE HOTEL block.
+  const re = /\[(\d{4}-\d{2}-\d{2}T[^\]]+)\] TO:[^|]+\| SUBJECT:[^\n]*\n─── ✦ DE WURA & ALFRED EXOTIC PLACE HOTEL — Contact Form ✦ ───\nFrom:\s+([^\n]+)\nEmail:\s+([^\n]+)\nSubject:\s+([^\n]*)\nMessage:\n([\s\S]*?)\n───\n?\n?/g;
   let m;
   while ((m = re.exec(text))) {
     const [, ts, name, email, subject, message] = m;

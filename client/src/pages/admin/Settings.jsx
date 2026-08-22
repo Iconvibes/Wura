@@ -168,7 +168,7 @@ export default function Settings() {
 
           <p className="text-[12px] text-dim mt-4">
             Tip: pick a code that's easy for staff to type but hard to guess — a
-            hotel name plus a year, e.g. <span className="font-mono text-gold-400">WURA-2026</span>. Login
+            hotel name plus a year, e.g. <span className="font-mono text-gold-400">DEWURA-2026</span>. Login
             attempts are rate-limited, so a reasonably long code is safe.
           </p>
         </>

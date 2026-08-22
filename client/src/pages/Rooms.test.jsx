@@ -33,7 +33,7 @@ describe('Rooms page', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('heading', { name: 'Choose your sanctuary' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Find your perfect room' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Deluxe Garden' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Skyline Suite' })).toBeInTheDocument();
     // Result count renders as <b>2</b> rooms & suites — check the bold count.

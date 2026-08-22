@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Wura Grand Hotel — Express + Mongoose REST API (MongoDB).",
+  "description": "De Wura & Alfred Exotic Place Hotel — Express + Mongoose REST API (MongoDB).",
   "main": "index.js",
   "scripts": {
     "dev": "node --watch index.js",

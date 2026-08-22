@@ -24,7 +24,7 @@ const OUT_DIR = path.join(__dirname, '..', 'client', 'public', 'social');
 /* ------------------------------- card data -------------------------------- */
 
 const PAGES = [
-  { file: 'home', kicker: 'WURA GRAND HOTEL', headline: 'Where every stay feels golden' },
+  { file: 'home', kicker: 'DE WURA & ALFRED', headline: 'Where every stay feels golden' },
   { file: 'rooms', kicker: 'ACCOMMODATION', headline: 'Rooms & Suites' },
   { file: 'experience', kicker: 'THE EXPERIENCE', headline: 'Everything included, every moment golden' },
   { file: 'gallery', kicker: 'GALLERY', headline: 'Light, linen & skyline' },
@@ -124,7 +124,7 @@ function cardSvg({ kicker, headline }) {
   <polyline points="70,78 80,118 86,96 92,118 102,78" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- Wordmark -->
-  <text x="138" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="30" letter-spacing="7" fill="#f4ead8">WURA GRAND</text>
+  <text x="138" y="98" font-family="Georgia, 'Times New Roman', serif" font-size="30" letter-spacing="7" fill="#f4ead8">DE WURA</text>
   <text x="141" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="12" letter-spacing="5" fill="url(#gold)">HOTEL · EST. 1962</text>
 
   ${stars()}

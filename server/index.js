@@ -58,7 +58,7 @@ const app = createApp();
     process.exit(1);
   }
 
-  console.log(`\n  ✦ WURA GRAND HOTEL — MERN API`);
+  console.log(`\n  ✦ DE WURA & ALFRED EXOTIC PLACE HOTEL — MERN API`);
   console.log(`  ➜ API:          http://127.0.0.1:${port}/api`);
   console.log(`  ➜ Health:       http://127.0.0.1:${port}/health`);
   console.log(`  ➜ Admin login:  admin / admin123`);

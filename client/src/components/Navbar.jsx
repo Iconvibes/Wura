@@ -67,11 +67,11 @@ export default function Navbar() {
             hidden && !open ? 'opacity-0' : 'opacity-100'
           }`}>
             <span className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950 text-lg shadow-[0_0_20px_rgba(212,175,55,0.4)] group-hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] transition-shadow">
-              W
+              D
             </span>
             <span className="leading-tight">
-              <span className="block font-serif text-[17px] tracking-[2px] text-cream">WURA GRAND</span>
-              <span className="block text-[9px] tracking-[3.5px] text-gold-500">HOTEL · EST. 1962</span>
+              <span className="block font-serif text-[17px] tracking-[2px] text-cream">DE WURA</span>
+              <span className="block text-[9px] tracking-[3.5px] text-gold-500">ALFRED · EXOTIC PLACE</span>
             </span>
           </Link>
 

@@ -53,7 +53,7 @@ export default function AdminLayout() {
   // Staff titles + drops the guest-site hero preload (admin has no hero — the
   // server strips it too, this keeps the head clean after SPA navigation).
   const rel = location.pathname.slice(ADMIN_PATH.length).replace(/^\/+/, '').split('/')[0] || 'overview';
-  usePageMeta(`${VIEW_TITLES[rel] || 'Staff Portal'} — Wura Grand Staff Portal`, 'Staff portal for Wura Grand Hotel — bookings, front desk, rooms and guest messages.');
+  usePageMeta(`${VIEW_TITLES[rel] || 'Staff Portal'} — De Wura & Alfred Staff Portal`, 'Staff portal for De Wura & Alfred Hotel — bookings, front desk, rooms and guest messages.');
 
   // Verify the stored token on mount and learn the session's role. api()
   // already redirects to /admin/login on a 401, so the catch here only handles
@@ -117,9 +117,9 @@ export default function AdminLayout() {
       {/* sidebar */}
       <aside className="w-[230px] flex-none border-r border-white/5 bg-navy-900/60 hidden md:flex flex-col p-4 sticky top-0 h-screen">
         <a href="/" className="flex items-center gap-3 mb-8 px-2">
-          <span className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950">W</span>
+          <span className="w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-serif font-bold text-navy-950">D</span>
           <span className="leading-tight">
-            <span className="block font-serif text-[15px] tracking-[1.5px] text-cream">WURA GRAND</span>
+            <span className="block font-serif text-[15px] tracking-[1.5px] text-cream">DE WURA & ALFRED</span>
             <span className="block text-[8.5px] tracking-[3px] text-gold-500">STAFF PORTAL</span>
           </span>
         </a>
@@ -167,7 +167,7 @@ export default function AdminLayout() {
         <div className={`flex items-center justify-between px-4 py-3 transition-opacity duration-[400ms] ease-(--ease-soft) ${
           hidden ? 'opacity-0' : 'opacity-100'
         }`}>
-          <span className="font-serif text-[15px] tracking-[1.5px] text-cream">WURA GRAND · STAFF</span>
+          <span className="font-serif text-[15px] tracking-[1.5px] text-cream">DE WURA & ALFRED · STAFF</span>
           <button className="btn btn-ghost btn-sm" onClick={logout}>Sign out</button>
         </div>
         <nav className={`flex gap-1.5 overflow-x-auto px-3 pb-3 transition-opacity duration-[400ms] ease-(--ease-soft) delay-100 ${

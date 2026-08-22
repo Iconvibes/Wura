@@ -10,14 +10,14 @@ import { EXPERIENCE_PHOTOS } from '../lib/photos.jsx';
 import { usePageMeta } from '../hooks/usePageMeta.jsx';
 
 export default function Experience() {
-  usePageMeta('The Experience — Wura Grand Hotel', 'Terrace pool, golden spa, wood-fired dining and more — every experience at Wura Grand is included with your stay.', '/social/experience.png', PAGE_HEROS.experience.image);
+  usePageMeta('Services — De Wura & Alfred Exotic Place Hotel', 'Lodging, lounge, VIP bar, kitchen, night club, laundry and more — discover every service at De Wura & Alfred.', '/social/experience.png', PAGE_HEROS.experience.image);
   return (
     <div>
       <Navbar />
       <PageHero {...PAGE_HEROS.experience} />
 
       <section className="max-w-6xl mx-auto px-5 pt-14 pb-10 space-y-20">
-        {AMENITIES.map(([icon, title, desc], i) => {
+        {AMENITIES.map(([icon, title, desc, note], i) => {
           const left = i % 2 === 0;
           const photo = (
             <div className="relative rounded-2xl overflow-hidden border border-gold-500/25 group h-64 md:h-80 card-enhanced">
@@ -36,7 +36,7 @@ export default function Experience() {
               <h2 className="font-serif text-[clamp(1.6rem,3vw,2.2rem)] text-cream mt-3">{title}</h2>
               <p className="text-[14.5px] leading-relaxed text-muted mt-4">{desc}</p>
               <p className="text-[13px] text-dim mt-4 leading-relaxed">
-                Included with every stay — no booking required. Ask the front desk to reserve your slot on arrival.
+                {note}
               </p>
             </div>
           );
